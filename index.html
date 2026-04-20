@@ -578,9 +578,9 @@ const BASE=[
 
 /* ===== CLOUD CONFIG ===== */
 const JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
-let _cloudKey = localStorage.getItem('gpmb_jsonbin_key') || '';
-let BIN_ID = localStorage.getItem('gpmb_bin_id') || '';
-let cloudEnabled = !!_cloudKey;
+let _cloudKey = '$2a$10$J7gclCENzkOn3pXmB8amruwUR1GE0POzWeHqxYoN4//H7XiMwkwYi';
+let BIN_ID = '69e5ea8d856a68218952098e';
+let cloudEnabled = true;
 
 /* ===== STATE ===== */
 let state = loadLocalState();
@@ -1218,15 +1218,9 @@ function saveApiKey(){
 renderAll();
 const banner=document.getElementById('cloudSetupBanner');
 const cb=document.getElementById('cloudBadge');
-if(!cloudEnabled){
-  if(banner) banner.style.display='block';
-  if(cb) cb.textContent='🔴 Cục bộ';
-  showSyncStatus('💡 Chưa cấu hình cloud — dữ liệu chỉ lưu trên thiết bị này');
-} else {
-  if(banner) banner.style.display='none';
-  if(cb) cb.textContent='☁️ Cloud';
-  loadCloudState();
-}
+if(banner) banner.style.display='none';
+if(cb) cb.textContent='☁️ Cloud';
+loadCloudState();
 </script>
 </body>
 </html>
