@@ -577,20 +577,13 @@ const BASE=[
 ];
 
 /* ===== CLOUD CONFIG ===== */
-/* Hướng dẫn:
-   1. Vào https://jsonbin.io → Đăng ký miễn phí
-   2. Vào "API Keys" → Copy Master Key → dán vào JSONBIN_KEY bên dưới
-   3. Lần đầu chạy app sẽ tự tạo Bin → lưu BIN_ID vào localStorage
-   4. Từ lần sau dữ liệu đồng bộ hoàn toàn qua cloud
-*/
-const JSONBIN_KEY = 'PASTE_YOUR_JSONBIN_MASTER_KEY_HERE';
 const JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
-
+let _cloudKey = localStorage.getItem('gpmb_jsonbin_key') || '';
 let BIN_ID = localStorage.getItem('gpmb_bin_id') || '';
-let cloudEnabled = JSONBIN_KEY !== 'PASTE_YOUR_JSONBIN_MASTER_KEY_HERE';
+let cloudEnabled = !!_cloudKey;
 
 /* ===== STATE ===== */
-let state = loadLocalState(); // load local trước, cloud load sau
+let state = loadLocalState();
 let chartHo=null,chartDt=null;
 let importRows=[];
 let nextId=1000;
@@ -604,85 +597,83 @@ function loadLocalState(){
 }
 
 async function loadCloudState(){
-  if(!cloudEnabled) return;
+  if(!cloudEnabled||!_cloudKey) return;
   try{
-    showSyncStatus('⏳ Đang tải dữ liệu từ cloud...');
-    let data;
+    showSyncStatus('⏳ Đang đồng bộ...');
     if(BIN_ID){
-      const res=await fetch(`${JSONBIN_URL}/${BIN_ID}/latest`,{headers:{'X-Master-Key':JSONBIN_KEY}});
-      if(!res.ok) throw new Error('Bin not found');
+      const res=await fetch(JSONBIN_URL+'/'+BIN_ID+'/latest',{
+        headers:{'X-Master-Key':_cloudKey,'X-Bin-Meta':'false'}
+      });
+      if(!res.ok) throw new Error('bin_not_found');
       const json=await res.json();
-      data=json.record;
+      const data=json.record||json;
+      if(data&&data.records){
+        state=data;
+        nextId=Math.max(1000,...state.records.map(r=>r.id+1));
+        localStorage.setItem('gpmb_v3',JSON.stringify(state));
+        renderAll();
+        showSyncStatus('✅ Đã đồng bộ từ cloud');
+        return;
+      }
     }
-    if(data&&data.records){
-      state=data;
-      nextId=Math.max(1000,...state.records.map(r=>r.id+1));
-      localStorage.setItem('gpmb_v3',JSON.stringify(state));
-      renderAll();
-      showSyncStatus('✅ Dữ liệu đã đồng bộ từ cloud');
-    } else {
-      // Bin chưa có → tạo mới với dữ liệu hiện tại
-      await createBin();
-    }
+    await createBin();
   }catch(e){
-    if(BIN_ID){
-      showSyncStatus('⚠️ Không kết nối cloud — đang dùng dữ liệu cục bộ');
-    } else {
-      await createBin();
-    }
+    showSyncStatus('⚠️ Không kết nối cloud — dùng dữ liệu cục bộ');
   }
 }
 
 async function createBin(){
   try{
-    showSyncStatus('⏳ Đang tạo kho dữ liệu cloud...');
+    showSyncStatus('⏳ Đang tạo kho cloud lần đầu...');
     const res=await fetch(JSONBIN_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY,'X-Bin-Name':'GPMB-Data','X-Bin-Private':'true'},
+      headers:{'Content-Type':'application/json','X-Master-Key':_cloudKey,'X-Bin-Name':'GPMB-Data','X-Bin-Private':'true'},
       body:JSON.stringify(state)
     });
     const json=await res.json();
-    BIN_ID=json.metadata?.id||json.id||'';
+    BIN_ID=json.metadata?.id||'';
     if(BIN_ID){
       localStorage.setItem('gpmb_bin_id',BIN_ID);
-      showSyncStatus('✅ Đã tạo kho cloud — dữ liệu sẽ đồng bộ tự động');
+      showSyncStatus('✅ Đã tạo kho cloud');
+    } else {
+      showSyncStatus('⚠️ Tạo kho thất bại — kiểm tra lại API Key');
     }
-  }catch(e){ showSyncStatus('⚠️ Không thể tạo kho cloud'); }
+  }catch(e){ showSyncStatus('⚠️ Không thể kết nối cloud'); }
 }
 
 let saveTimer=null;
 function saveState(){
   localStorage.setItem('gpmb_v3',JSON.stringify(state));
-  showToast('💾 Đã lưu cục bộ');
-  if(cloudEnabled){
+  showToast('💾 Đã lưu');
+  if(cloudEnabled&&_cloudKey){
     clearTimeout(saveTimer);
-    saveTimer=setTimeout(saveCloud,1200); // debounce 1.2s
+    saveTimer=setTimeout(saveCloud,1400);
   }
 }
 
 async function saveCloud(){
-  if(!cloudEnabled||!BIN_ID) return;
+  if(!cloudEnabled||!_cloudKey||!BIN_ID) return;
   try{
     showSyncStatus('⏳ Đang lưu cloud...');
-    const res=await fetch(`${JSONBIN_URL}/${BIN_ID}`,{
+    const res=await fetch(JSONBIN_URL+'/'+BIN_ID,{
       method:'PUT',
-      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
+      headers:{'Content-Type':'application/json','X-Master-Key':_cloudKey},
       body:JSON.stringify(state)
     });
-    if(res.ok){ showSyncStatus('☁️ Đã lưu cloud'); }
+    if(res.ok) showSyncStatus('☁️ Đã lưu cloud');
     else throw new Error();
-  }catch(e){ showSyncStatus('⚠️ Lưu cloud thất bại — dữ liệu vẫn có cục bộ'); }
+  }catch(e){ showSyncStatus('⚠️ Lưu cloud thất bại'); }
 }
 
 function showSyncStatus(msg){
-  let el=document.getElementById('syncStatus');
+  const el=document.getElementById('syncStatus');
   if(!el) return;
   el.textContent=msg;
   el.style.opacity='1';
   clearTimeout(el._t);
-  el._t=setTimeout(()=>el.style.opacity='0',4000);
+  el._t=setTimeout(()=>el.style.opacity='0',5000);
 }
-}
+
 
 function getRecord(id){ return state.records.find(r=>r.id===id); }
 function isReceived(id){ return state.received.includes(id); }
@@ -1217,47 +1208,22 @@ document.addEventListener('click',e=>{
 function saveApiKey(){
   const key=document.getElementById('apiKeyInput').value.trim();
   if(!key){showToast('⚠️ Vui lòng nhập API Key');return;}
+  if(!key.startsWith('$2')){showToast('⚠️ Key không đúng định dạng — phải bắt đầu bằng $2');return;}
   localStorage.setItem('gpmb_jsonbin_key',key);
+  localStorage.removeItem('gpmb_bin_id');
   location.reload();
 }
 
-/* Đọc key từ localStorage nếu đã lưu trước đó */
-(function initCloudKey(){
-  const saved=localStorage.getItem('gpmb_jsonbin_key');
-  if(saved&&JSONBIN_KEY==='PASTE_YOUR_JSONBIN_MASTER_KEY_HERE'){
-    /* Key đã lưu trong localStorage nhưng chưa patch vào code — dùng dynamic */
-    window._dynKey=saved;
-    cloudEnabled=true;
-    BIN_ID=localStorage.getItem('gpmb_bin_id')||'';
-  }
-})();
-
-/* Override fetch headers nếu dùng dynamic key */
-const _origFetch=window.fetch;
-window.fetch=function(url,...args){
-  if(typeof url==='string'&&url.includes('jsonbin.io')){
-    const opts=args[0]||{};
-    const key=JSONBIN_KEY!=='PASTE_YOUR_JSONBIN_MASTER_KEY_HERE'?JSONBIN_KEY:(window._dynKey||'');
-    if(key){
-      opts.headers=Object.assign({'X-Master-Key':key},opts.headers||{});
-      args[0]=opts;
-    }
-  }
-  return _origFetch.call(this,url,...args);
-};
-
-/* INIT */
+/* INIT — render ngay lập tức, cloud load nền */
 renderAll();
-const hasSavedKey=localStorage.getItem('gpmb_jsonbin_key');
 const banner=document.getElementById('cloudSetupBanner');
-if(!cloudEnabled&&!hasSavedKey){
-  banner.style.display='block';
-  const cb=document.getElementById('cloudBadge');
+const cb=document.getElementById('cloudBadge');
+if(!cloudEnabled){
+  if(banner) banner.style.display='block';
   if(cb) cb.textContent='🔴 Cục bộ';
   showSyncStatus('💡 Chưa cấu hình cloud — dữ liệu chỉ lưu trên thiết bị này');
 } else {
-  banner.style.display='none';
-  const cb=document.getElementById('cloudBadge');
+  if(banner) banner.style.display='none';
   if(cb) cb.textContent='☁️ Cloud';
   loadCloudState();
 }
