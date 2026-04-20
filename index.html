@@ -30,7 +30,7 @@ body{font-family:var(--font);background:var(--g50);color:var(--g800);min-height:
 .header-badge{margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
 
 /* TABS */
-.nav-tabs{background:#fff;border-bottom:1px solid var(--g200);position:sticky;top:62px;z-index:90;overflow-x:auto;scrollbar-width:none}
+.nav-tabs{background:#fff;border-bottom:1px solid var(--g200);position:sticky;top:86px;z-index:90;overflow-x:auto;scrollbar-width:none}
 .nav-tabs::-webkit-scrollbar{display:none}
 .nav-inner{max-width:1280px;margin:0 auto;display:flex;padding:0 16px}
 .tab-btn{padding:13px 16px;font-size:13px;font-weight:500;color:var(--g600);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:5px;font-family:var(--font)}
@@ -228,6 +228,10 @@ td:hover .edit-icon{opacity:1}
     </div>
     <div class="header-badge" id="hBadge">0 / 93 hộ</div>
   </div>
+  <div id="syncBar" style="background:rgba(0,0,0,.25);padding:4px 20px;font-size:11px;display:flex;align-items:center;gap:6px">
+    <span id="syncStatus" style="color:rgba(255,255,255,.8);transition:opacity .5s">⏳ Đang khởi động...</span>
+    <span id="cloudBadge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)"></span>
+  </div>
 </header>
 
 <nav class="nav-tabs">
@@ -243,6 +247,20 @@ td:hover .edit-icon{opacity:1}
 <main class="main">
   <!-- DASHBOARD -->
   <div class="tab-pane active" id="tab-dashboard">
+    <!-- Cloud config banner (ẩn khi đã cấu hình) -->
+    <div id="cloudSetupBanner" class="panel" style="border:1.5px solid #fcd34d;background:var(--amber-lt);display:none">
+      <h3 style="color:var(--amber)">☁️ Cấu hình lưu trữ Cloud</h3>
+      <p style="font-size:12px;color:var(--g600);margin-bottom:12px;line-height:1.7">
+        Hiện tại dữ liệu chỉ lưu trên trình duyệt này. Để đồng bộ giữa nhiều thiết bị:<br>
+        1. Vào <a href="https://jsonbin.io" target="_blank" style="color:var(--blue-mid)">jsonbin.io</a> → Đăng ký miễn phí<br>
+        2. Vào <strong>API Keys</strong> → copy <strong>Master Key</strong><br>
+        3. Dán vào ô bên dưới và nhấn Lưu
+      </p>
+      <div style="display:flex;gap:8px">
+        <input class="ifield" id="apiKeyInput" type="password" placeholder="Dán Master Key từ jsonbin.io vào đây..." style="font-family:monospace;font-size:12px">
+        <button class="btn-add" onclick="saveApiKey()">💾 Lưu & Kết nối</button>
+      </div>
+    </div>
     <div class="metrics-grid" id="metricsGrid"></div>
     <div class="prog-box">
       <div class="prog-hdr">
@@ -558,26 +576,112 @@ const BASE=[
   {id:93,name:"Nguyễn Hữu Anh",addr:"Thôn 1",dt:355.5,bt:99583000,p20:19916600,cbs:0,total:119499600}
 ];
 
+/* ===== CLOUD CONFIG ===== */
+/* Hướng dẫn:
+   1. Vào https://jsonbin.io → Đăng ký miễn phí
+   2. Vào "API Keys" → Copy Master Key → dán vào JSONBIN_KEY bên dưới
+   3. Lần đầu chạy app sẽ tự tạo Bin → lưu BIN_ID vào localStorage
+   4. Từ lần sau dữ liệu đồng bộ hoàn toàn qua cloud
+*/
+const JSONBIN_KEY = 'PASTE_YOUR_JSONBIN_MASTER_KEY_HERE';
+const JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
+
+let BIN_ID = localStorage.getItem('gpmb_bin_id') || '';
+let cloudEnabled = JSONBIN_KEY !== 'PASTE_YOUR_JSONBIN_MASTER_KEY_HERE';
+
 /* ===== STATE ===== */
-let state = loadState();
+let state = loadLocalState(); // load local trước, cloud load sau
 let chartHo=null,chartDt=null;
 let importRows=[];
 let nextId=1000;
 
-function loadState(){
+function loadLocalState(){
   try{
     const s=JSON.parse(localStorage.getItem('gpmb_v3')||'null');
-    if(s&&s.records) return s;
+    if(s&&s.records){ nextId=Math.max(1000,...s.records.map(r=>r.id+1)); return s; }
   }catch(e){}
-  return {
-    records: BASE.map(r=>({...r})),
-    received: []
-  };
+  return { records: BASE.map(r=>({...r})), received: [] };
 }
 
+async function loadCloudState(){
+  if(!cloudEnabled) return;
+  try{
+    showSyncStatus('⏳ Đang tải dữ liệu từ cloud...');
+    let data;
+    if(BIN_ID){
+      const res=await fetch(`${JSONBIN_URL}/${BIN_ID}/latest`,{headers:{'X-Master-Key':JSONBIN_KEY}});
+      if(!res.ok) throw new Error('Bin not found');
+      const json=await res.json();
+      data=json.record;
+    }
+    if(data&&data.records){
+      state=data;
+      nextId=Math.max(1000,...state.records.map(r=>r.id+1));
+      localStorage.setItem('gpmb_v3',JSON.stringify(state));
+      renderAll();
+      showSyncStatus('✅ Dữ liệu đã đồng bộ từ cloud');
+    } else {
+      // Bin chưa có → tạo mới với dữ liệu hiện tại
+      await createBin();
+    }
+  }catch(e){
+    if(BIN_ID){
+      showSyncStatus('⚠️ Không kết nối cloud — đang dùng dữ liệu cục bộ');
+    } else {
+      await createBin();
+    }
+  }
+}
+
+async function createBin(){
+  try{
+    showSyncStatus('⏳ Đang tạo kho dữ liệu cloud...');
+    const res=await fetch(JSONBIN_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY,'X-Bin-Name':'GPMB-Data','X-Bin-Private':'true'},
+      body:JSON.stringify(state)
+    });
+    const json=await res.json();
+    BIN_ID=json.metadata?.id||json.id||'';
+    if(BIN_ID){
+      localStorage.setItem('gpmb_bin_id',BIN_ID);
+      showSyncStatus('✅ Đã tạo kho cloud — dữ liệu sẽ đồng bộ tự động');
+    }
+  }catch(e){ showSyncStatus('⚠️ Không thể tạo kho cloud'); }
+}
+
+let saveTimer=null;
 function saveState(){
   localStorage.setItem('gpmb_v3',JSON.stringify(state));
-  showToast('💾 Đã lưu');
+  showToast('💾 Đã lưu cục bộ');
+  if(cloudEnabled){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(saveCloud,1200); // debounce 1.2s
+  }
+}
+
+async function saveCloud(){
+  if(!cloudEnabled||!BIN_ID) return;
+  try{
+    showSyncStatus('⏳ Đang lưu cloud...');
+    const res=await fetch(`${JSONBIN_URL}/${BIN_ID}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
+      body:JSON.stringify(state)
+    });
+    if(res.ok){ showSyncStatus('☁️ Đã lưu cloud'); }
+    else throw new Error();
+  }catch(e){ showSyncStatus('⚠️ Lưu cloud thất bại — dữ liệu vẫn có cục bộ'); }
+}
+
+function showSyncStatus(msg){
+  let el=document.getElementById('syncStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.opacity='1';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.style.opacity='0',4000);
+}
 }
 
 function getRecord(id){ return state.records.find(r=>r.id===id); }
@@ -1110,7 +1214,53 @@ document.addEventListener('click',e=>{
   if(e.target===document.getElementById('modalBg')) closeModal();
 });
 
+function saveApiKey(){
+  const key=document.getElementById('apiKeyInput').value.trim();
+  if(!key){showToast('⚠️ Vui lòng nhập API Key');return;}
+  localStorage.setItem('gpmb_jsonbin_key',key);
+  location.reload();
+}
+
+/* Đọc key từ localStorage nếu đã lưu trước đó */
+(function initCloudKey(){
+  const saved=localStorage.getItem('gpmb_jsonbin_key');
+  if(saved&&JSONBIN_KEY==='PASTE_YOUR_JSONBIN_MASTER_KEY_HERE'){
+    /* Key đã lưu trong localStorage nhưng chưa patch vào code — dùng dynamic */
+    window._dynKey=saved;
+    cloudEnabled=true;
+    BIN_ID=localStorage.getItem('gpmb_bin_id')||'';
+  }
+})();
+
+/* Override fetch headers nếu dùng dynamic key */
+const _origFetch=window.fetch;
+window.fetch=function(url,...args){
+  if(typeof url==='string'&&url.includes('jsonbin.io')){
+    const opts=args[0]||{};
+    const key=JSONBIN_KEY!=='PASTE_YOUR_JSONBIN_MASTER_KEY_HERE'?JSONBIN_KEY:(window._dynKey||'');
+    if(key){
+      opts.headers=Object.assign({'X-Master-Key':key},opts.headers||{});
+      args[0]=opts;
+    }
+  }
+  return _origFetch.call(this,url,...args);
+};
+
+/* INIT */
 renderAll();
+const hasSavedKey=localStorage.getItem('gpmb_jsonbin_key');
+const banner=document.getElementById('cloudSetupBanner');
+if(!cloudEnabled&&!hasSavedKey){
+  banner.style.display='block';
+  const cb=document.getElementById('cloudBadge');
+  if(cb) cb.textContent='🔴 Cục bộ';
+  showSyncStatus('💡 Chưa cấu hình cloud — dữ liệu chỉ lưu trên thiết bị này');
+} else {
+  banner.style.display='none';
+  const cb=document.getElementById('cloudBadge');
+  if(cb) cb.textContent='☁️ Cloud';
+  loadCloudState();
+}
 </script>
 </body>
 </html>
