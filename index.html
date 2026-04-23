@@ -217,7 +217,8 @@ td:hover .edit-icon{opacity:1}
 }
 
 /* LOGIN SCREEN */
-.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c 0%,#2563a8 100%);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c 0%,#2563a8 100%);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
+.login-overlay.active{display:flex}
 .login-box{background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
 .login-logo{text-align:center;margin-bottom:24px}
 .login-logo .lico{font-size:40px;display:block;margin-bottom:8px}
@@ -249,7 +250,7 @@ td:hover .edit-icon{opacity:1}
 <body>
 
 <!-- LOGIN OVERLAY -->
-<div class="login-overlay" id="loginOverlay">
+<div class="login-overlay" id="loginOverlay" style="display:none">
   <div class="login-box">
     <div class="login-logo">
       <span class="lico">🏛️</span>
@@ -1403,7 +1404,7 @@ function doLogin(){
     currentUser = { name: u, role: USERS[u].role, label: USERS[u].label };
     sessionStorage.setItem('gpmb_session', JSON.stringify(currentUser));
     err.classList.remove('show');
-    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginOverlay').classList.remove('active');
     applyAuth();
     renderAll();
     loadCloudState();
@@ -1420,7 +1421,7 @@ function doLogout(){
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('loginErr').classList.remove('show');
-  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginOverlay').classList.add('active');
 }
 
 function applyAuth(){
@@ -1478,14 +1479,14 @@ const savedSession = sessionStorage.getItem('gpmb_session');
 if(savedSession){
   try{
     currentUser = JSON.parse(savedSession);
-    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginOverlay').classList.remove('active');
     applyAuth();
     renderAll();
     loadCloudState();
   }catch(e){ doLogout(); }
 } else {
   /* Show login — don't render yet */
-  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginOverlay').classList.add('active');
   document.getElementById('loginUser').focus();
 }
 
