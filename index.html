@@ -217,8 +217,7 @@ td:hover .edit-icon{opacity:1}
 }
 
 /* LOGIN SCREEN */
-.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c 0%,#2563a8 100%);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
-.login-overlay.active{display:flex}
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c 0%,#2563a8 100%);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
 .login-box{background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
 .login-logo{text-align:center;margin-bottom:24px}
 .login-logo .lico{font-size:40px;display:block;margin-bottom:8px}
@@ -250,7 +249,7 @@ td:hover .edit-icon{opacity:1}
 <body>
 
 <!-- LOGIN OVERLAY -->
-<div class="login-overlay" id="loginOverlay" style="display:none">
+<div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <div class="login-logo">
       <span class="lico">🏛️</span>
@@ -712,10 +711,6 @@ async function createBin(){
 
 let saveTimer=null;
 function saveState(){
-  if(currentUser && currentUser.role === 'guest'){
-    showToast('🔒 Guest không có quyền lưu');
-    return;
-  }
   localStorage.setItem('gpmb_v3',JSON.stringify(state));
   showToast('💾 Đã lưu');
   if(cloudEnabled&&_cloudKey){
@@ -929,17 +924,11 @@ function closeModal(){
   document.getElementById('modalBg').classList.remove('open');
 }
 
-/* ===== FILE UPLOAD — Tab Cập nhật ===== */
-function handleFileUpload(e){const f=e.target.files[0];if(f)processFile(f);e.target.value='';}
-
-function initUploadZone(){
-  const uz=document.getElementById('uploadZone');
-  if(!uz) return;
-  uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
-  uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
-  uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f);});
-}
-initUploadZone();
+/* ===== FILE UPLOAD — Tab Cập nhật (chỉ dùng tên, lấy số liệu từ danh sách chưa nhận) ===== */
+const uz=document.getElementById('uploadZone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f);});
 
 function handleFileUpload(e){const f=e.target.files[0];if(f)processFile(f);e.target.value='';}
 
@@ -1077,23 +1066,16 @@ function importAllMatched(){
 }
 
 function clearPreview(){
-  const el=document.getElementById('excelPreview');
-  if(el) el.style.display='none';
+  document.getElementById('excelPreview').style.display='none';
   importRows=[];
 }
 
 /* ===== PENDING TAB UPLOAD ===== */
 let importRowsPend=[];
-function handleFileUploadPend(e){const f=e.target.files[0];if(f)processFilePend(f);e.target.value='';}
-
-function initUploadZonePend(){
-  const uzPend=document.getElementById('uploadZonePend');
-  if(!uzPend) return;
-  uzPend.addEventListener('dragover',e=>{e.preventDefault();uzPend.classList.add('drag');});
-  uzPend.addEventListener('dragleave',()=>uzPend.classList.remove('drag'));
-  uzPend.addEventListener('drop',e=>{e.preventDefault();uzPend.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFilePend(f);});
-}
-initUploadZonePend();
+const uzPend=document.getElementById('uploadZonePend');
+uzPend.addEventListener('dragover',e=>{e.preventDefault();uzPend.classList.add('drag');});
+uzPend.addEventListener('dragleave',()=>uzPend.classList.remove('drag'));
+uzPend.addEventListener('drop',e=>{e.preventDefault();uzPend.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFilePend(f);});
 
 function handleFileUploadPend(e){const f=e.target.files[0];if(f)processFilePend(f);e.target.value='';}
 
@@ -1404,7 +1386,7 @@ function doLogin(){
     currentUser = { name: u, role: USERS[u].role, label: USERS[u].label };
     sessionStorage.setItem('gpmb_session', JSON.stringify(currentUser));
     err.classList.remove('show');
-    document.getElementById('loginOverlay').classList.remove('active');
+    document.getElementById('loginOverlay').style.display = 'none';
     applyAuth();
     renderAll();
     loadCloudState();
@@ -1421,7 +1403,7 @@ function doLogout(){
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('loginErr').classList.remove('show');
-  document.getElementById('loginOverlay').classList.add('active');
+  document.getElementById('loginOverlay').style.display = 'flex';
 }
 
 function applyAuth(){
@@ -1459,14 +1441,29 @@ function applyAuth(){
     el.style.display = isGuest ? 'none' : '';
   });
 
-  /* Re-init upload drag zones in case panels were just shown */
-  if(!isGuest){
-    initUploadZone();
-    initUploadZonePend();
-  }
+  /* Disable action buttons */
+  document.querySelectorAll('.btn-add,.btn-mark,.btn-rm,.btn-edit,.btn-save').forEach(btn=>{
+    if(isGuest){
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+    } else {
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+    }
+  });
 }
 
-/* Guest save blocked inside saveState directly */
+/* Override saveState to block guests */
+const _origSaveState = saveState;
+function saveState(){
+  if(currentUser && currentUser.role === 'guest'){
+    showToast('🔒 Guest không có quyền lưu dữ liệu');
+    return;
+  }
+  _origSaveState();
+}
 
 /* ===== INIT ===== */
 const banner = document.getElementById('cloudSetupBanner');
@@ -1479,14 +1476,14 @@ const savedSession = sessionStorage.getItem('gpmb_session');
 if(savedSession){
   try{
     currentUser = JSON.parse(savedSession);
-    document.getElementById('loginOverlay').classList.remove('active');
+    document.getElementById('loginOverlay').style.display = 'none';
     applyAuth();
     renderAll();
     loadCloudState();
   }catch(e){ doLogout(); }
 } else {
   /* Show login — don't render yet */
-  document.getElementById('loginOverlay').classList.add('active');
+  document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('loginUser').focus();
 }
 
