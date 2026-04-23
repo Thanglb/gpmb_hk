@@ -215,9 +215,62 @@ td:hover .edit-icon{opacity:1}
   .btn-add{padding:10px 12px}
   .form-grid{grid-template-columns:1fr}
 }
+
+/* LOGIN SCREEN */
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c 0%,#2563a8 100%);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo .lico{font-size:40px;display:block;margin-bottom:8px}
+.login-logo h2{font-size:18px;font-weight:700;color:var(--blue);line-height:1.2}
+.login-logo p{font-size:11px;color:var(--g400);margin-top:4px}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px}
+.login-field input{width:100%;padding:11px 14px;border:1.5px solid var(--g200);border-radius:var(--r-sm);font-size:14px;font-family:var(--font);color:var(--g800);background:var(--g50);outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--blue-acc);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.login-btn{width:100%;padding:13px;background:var(--blue-mid);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .2s;margin-top:6px}
+.login-btn:hover{background:var(--blue)}
+.login-btn:active{transform:scale(.98)}
+.login-err{background:var(--red-lt);color:var(--red);border:1px solid #fca5a5;border-radius:var(--r-sm);padding:9px 13px;font-size:12px;font-weight:500;margin-bottom:12px;display:none}
+.login-err.show{display:block}
+.login-hint{text-align:center;font-size:12px;color:var(--g600);margin-top:16px;line-height:1.8;padding:10px 12px;background:var(--g50);border-radius:var(--r-sm);border:1px solid var(--g200)}
+
+/* USER BADGE in header */
+.user-badge{display:flex;align-items:center;gap:8px;margin-left:auto}
+.user-pill{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.user-pill.guest{background:rgba(251,191,36,.25);border-color:rgba(251,191,36,.4)}
+.logout-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--font);transition:background .2s;white-space:nowrap}
+.logout-btn:hover{background:rgba(255,255,255,.25)}
+
+/* GUEST LOCK overlay on write elements */
+.guest-lock{position:relative;pointer-events:none;opacity:.45;user-select:none}
+.guest-banner{background:linear-gradient(90deg,var(--amber-lt),#fff9e6);border:1.5px solid #fcd34d;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--amber);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="lico">🏛️</span>
+      <h2>GPMB — Theo dõi Bồi thường</h2>
+      <p>Dự án Khu dân cư xã Phú Phong, Huyện Hương Khê</p>
+    </div>
+    <div class="login-err" id="loginErr">Tên đăng nhập hoặc mật khẩu không đúng</div>
+    <div class="login-field">
+      <label>Tên đăng nhập</label>
+      <input type="text" id="loginUser" placeholder="admin hoặc guest" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="login-field">
+      <label>Mật khẩu</label>
+      <input type="password" id="loginPass" placeholder="Nhập mật khẩu..." autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Đăng nhập</button>
+    <div class="login-hint">
+      <strong style="color:var(--blue)">Admin</strong>: toàn quyền chỉnh sửa &nbsp;·&nbsp; <strong style="color:var(--g600)">Guest</strong>: chỉ xem
+    </div>
+  </div>
+</div>
 
 <header class="app-header">
   <div class="header-inner">
@@ -226,10 +279,14 @@ td:hover .edit-icon{opacity:1}
       <h1>GPMB — Theo dõi Bồi thường</h1>
       <p>Dự án Khu dân cư xã Phú Phong, Huyện Hương Khê, Tỉnh Hà Tĩnh</p>
     </div>
-    <div class="header-badge" id="hBadge">0 / 93 hộ</div>
+    <div class="user-badge">
+      <div class="user-pill" id="userPill">👤 —</div>
+      <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
+    </div>
   </div>
   <div id="syncBar" style="background:rgba(0,0,0,.25);padding:4px 20px;font-size:11px;display:flex;align-items:center;gap:6px">
-    <span id="syncStatus" style="color:rgba(255,255,255,.8);transition:opacity .5s">⏳ Đang khởi động...</span>
+    <span id="hBadge" style="color:rgba(255,255,255,.8);font-weight:600">0 / 93 hộ</span>
+    <span id="syncStatus" style="color:rgba(255,255,255,.65);transition:opacity .5s;margin-left:8px"></span>
     <span id="cloudBadge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)"></span>
   </div>
 </header>
@@ -287,8 +344,9 @@ td:hover .edit-icon{opacity:1}
 
   <!-- UPDATE -->
   <div class="tab-pane" id="tab-update">
+    <div class="guest-banner" id="guestBannerUpdate" style="display:none">🔒 Bạn đang đăng nhập với quyền Guest — chỉ xem, không thể chỉnh sửa</div>
     <!-- Upload Excel - chỉ cần tên, lấy số liệu từ danh sách chưa nhận -->
-    <div class="panel">
+    <div class="panel guest-hide">
       <h3>📂 Upload danh sách đã nhận từ file Excel</h3>
       <p style="font-size:12px;color:var(--g600);margin-bottom:12px;line-height:1.6">
         Chỉ cần file có <strong>cột tên hộ</strong>. App sẽ tự tra danh sách chưa nhận, lấy số liệu và đánh dấu <em>Đã nhận</em>.<br>
@@ -311,7 +369,7 @@ td:hover .edit-icon{opacity:1}
     </div>
 
     <!-- Manual input -->
-    <div class="panel">
+    <div class="panel guest-hide">
       <h3>✏️ Nhập thủ công hộ đã nhận tiền</h3>
       <div class="input-row">
         <input class="ifield" id="nameInput" type="text" placeholder="Nhập họ tên hộ..." autocomplete="off" oninput="onInput()" onkeydown="onKeyDown(event)">
@@ -358,9 +416,10 @@ td:hover .edit-icon{opacity:1}
 
   <!-- PENDING -->
   <div class="tab-pane" id="tab-pending">
+    <div class="guest-banner" id="guestBannerPending" style="display:none">🔒 Bạn đang đăng nhập với quyền Guest — chỉ xem, không thể chỉnh sửa</div>
 
     <!-- Upload Excel vào danh sách chưa nhận -->
-    <div class="panel">
+    <div class="panel guest-hide">
       <h3>📂 Upload / Thêm hộ vào danh sách</h3>
       <div class="upload-zone" id="uploadZonePend">
         <input type="file" id="fileInputPend" accept=".xlsx,.xls,.csv" onchange="handleFileUploadPend(event)">
@@ -379,7 +438,7 @@ td:hover .edit-icon{opacity:1}
     </div>
 
     <!-- Thêm hộ mới thủ công -->
-    <div class="panel">
+    <div class="panel guest-hide">
       <h3>➕ Thêm hộ mới thủ công</h3>
       <div class="pend-add-grid">
         <input class="ifield" id="pendName" type="text" placeholder="Họ và tên *" autocomplete="off">
@@ -1066,7 +1125,9 @@ function renderAll(){
   renderMetrics(); renderProgress(); renderCharts();
   renderRecentTable(); renderReceivedTable(); renderPendingTable(); renderReport();
   const rHo=state.received.length;
-  document.getElementById('hBadge').textContent=rHo+' / '+state.records.length+' hộ';
+  const el=document.getElementById('hBadge');
+  if(el) el.textContent=rHo+' / '+state.records.length+' hộ';
+  if(currentUser) applyAuth();
 }
 
 function calcTotals(list){
@@ -1200,27 +1261,127 @@ function renderReport(){
     ['Tổng chi bổ sung',fmt(all.cbs)+' đồng',''],['Tổng toàn dự án',fmt(all.total)+' đồng','blue']]);
 }
 
+/* ===== AUTH ===== */
+const USERS = {
+  admin: { pass: 'Ha123456', role: 'admin', label: '👑 Admin' },
+  guest: { pass: '1234',     role: 'guest', label: '👁️ Guest' }
+};
+
+let currentUser = null;
+
+function doLogin(){
+  const u = document.getElementById('loginUser').value.trim().toLowerCase();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  if(USERS[u] && USERS[u].pass === p){
+    currentUser = { name: u, role: USERS[u].role, label: USERS[u].label };
+    sessionStorage.setItem('gpmb_session', JSON.stringify(currentUser));
+    err.classList.remove('show');
+    document.getElementById('loginOverlay').style.display = 'none';
+    applyAuth();
+    renderAll();
+    loadCloudState();
+  } else {
+    err.classList.add('show');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('gpmb_session');
+  currentUser = null;
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginErr').classList.remove('show');
+  document.getElementById('loginOverlay').style.display = 'flex';
+}
+
+function applyAuth(){
+  if(!currentUser) return;
+  const isGuest = currentUser.role === 'guest';
+
+  /* User pill */
+  const pill = document.getElementById('userPill');
+  if(pill){
+    pill.textContent = currentUser.label;
+    if(isGuest) pill.classList.add('guest');
+    else pill.classList.remove('guest');
+  }
+
+  /* Guest banners */
+  ['guestBannerUpdate','guestBannerPending'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = isGuest ? 'flex' : 'none';
+  });
+
+  /* Hide write panels for Guest */
+  const writeIds = [
+    'uploadZone','fileInput',          /* update tab upload */
+    'uploadZonePend','fileInputPend',  /* pending tab upload */
+    'nameInput',                       /* manual add received */
+    'pendName','pendAddr','pendDt','pendBt','pendP20','pendCbs', /* add pending form */
+  ];
+  writeIds.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.disabled = isGuest;
+  });
+
+  /* Hide entire write panels for guest */
+  document.querySelectorAll('.guest-hide').forEach(el=>{
+    el.style.display = isGuest ? 'none' : '';
+  });
+
+  /* Disable action buttons */
+  document.querySelectorAll('.btn-add,.btn-mark,.btn-rm,.btn-edit,.btn-save').forEach(btn=>{
+    if(isGuest){
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+    } else {
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+    }
+  });
+}
+
+/* Override saveState to block guests */
+const _origSaveState = saveState;
+function saveState(){
+  if(currentUser && currentUser.role === 'guest'){
+    showToast('🔒 Guest không có quyền lưu dữ liệu');
+    return;
+  }
+  _origSaveState();
+}
+
+/* ===== INIT ===== */
+const banner = document.getElementById('cloudSetupBanner');
+const cb = document.getElementById('cloudBadge');
+if(banner) banner.style.display = 'none';
+if(cb) cb.textContent = '☁️ Cloud';
+
+/* Check existing session */
+const savedSession = sessionStorage.getItem('gpmb_session');
+if(savedSession){
+  try{
+    currentUser = JSON.parse(savedSession);
+    document.getElementById('loginOverlay').style.display = 'none';
+    applyAuth();
+    renderAll();
+    loadCloudState();
+  }catch(e){ doLogout(); }
+} else {
+  /* Show login — don't render yet */
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginUser').focus();
+}
+
 document.addEventListener('click',e=>{
   if(!e.target.closest('#suggestBox')&&!e.target.closest('#nameInput')) document.getElementById('suggestBox').style.display='none';
   if(e.target===document.getElementById('modalBg')) closeModal();
 });
-
-function saveApiKey(){
-  const key=document.getElementById('apiKeyInput').value.trim();
-  if(!key){showToast('⚠️ Vui lòng nhập API Key');return;}
-  if(!key.startsWith('$2')){showToast('⚠️ Key không đúng định dạng — phải bắt đầu bằng $2');return;}
-  localStorage.setItem('gpmb_jsonbin_key',key);
-  localStorage.removeItem('gpmb_bin_id');
-  location.reload();
-}
-
-/* INIT — render ngay lập tức, cloud load nền */
-renderAll();
-const banner=document.getElementById('cloudSetupBanner');
-const cb=document.getElementById('cloudBadge');
-if(banner) banner.style.display='none';
-if(cb) cb.textContent='☁️ Cloud';
-loadCloudState();
 </script>
 </body>
 </html>
