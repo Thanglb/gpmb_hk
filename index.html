@@ -494,43 +494,52 @@ td:hover .edit-icon{opacity:1}
     </div>
     <div class="modal-body">
       <input type="hidden" id="editId">
+      <div id="guestModalNote" style="display:none;background:var(--amber-lt);border:1px solid #fcd34d;border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--amber);margin-bottom:12px">
+        🔒 Guest chỉ xem — không thể chỉnh sửa
+      </div>
       <div class="form-row">
         <label class="form-label">Họ và tên</label>
-        <input class="form-input" id="editName" type="text">
+        <input class="form-input" id="editName" type="text" oninput="autoSaveEdit()">
       </div>
       <div class="form-row">
         <label class="form-label">Địa chỉ</label>
-        <input class="form-input" id="editAddr" type="text">
+        <input class="form-input" id="editAddr" type="text" oninput="autoSaveEdit()">
       </div>
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">Diện tích (m²)</label>
-          <input class="form-input" id="editDt" type="number" step="0.01">
+          <input class="form-input" id="editDt" type="number" step="0.01" oninput="autoSaveEdit()">
         </div>
         <div class="form-row">
           <label class="form-label">Bồi thường (đồng)</label>
-          <input class="form-input" id="editBt" type="number">
+          <input class="form-input" id="editBt" type="number" oninput="autoSaveEdit()">
         </div>
         <div class="form-row">
           <label class="form-label">20% tăng thêm (đồng)</label>
-          <input class="form-input" id="editP20" type="number">
+          <input class="form-input" id="editP20" type="number" oninput="autoSaveEdit()">
         </div>
         <div class="form-row">
           <label class="form-label">Chi bổ sung thêm (đồng)</label>
-          <input class="form-input" id="editCbs" type="number" placeholder="0">
+          <input class="form-input" id="editCbs" type="number" placeholder="0" oninput="autoSaveEdit()">
         </div>
       </div>
       <div class="form-row">
         <label class="form-label">Trạng thái nhận tiền</label>
-        <select class="form-input" id="editStatus">
+        <select class="form-input" id="editStatus" onchange="autoSaveEdit()">
           <option value="0">⏳ Chưa nhận</option>
           <option value="1">✅ Đã nhận</option>
         </select>
       </div>
+      <!-- Live total preview -->
+      <div id="editTotalPreview" style="margin-top:12px;background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--g600)">Tổng giá trị:</span>
+        <span id="editTotalVal" style="font-weight:700;color:var(--blue-mid);font-size:15px">0</span>
+      </div>
+      <div id="autoSaveStatus" style="text-align:right;font-size:11px;color:var(--g400);margin-top:6px;height:16px"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Huỷ</button>
-      <button class="btn-save" onclick="saveEdit()">💾 Lưu thay đổi</button>
+      <button class="btn-cancel" onclick="closeModal()">Đóng</button>
+      <button class="btn-save" id="btnSaveEdit" onclick="saveEdit()" style="display:none">💾 Lưu</button>
     </div>
   </div>
 </div>
@@ -830,27 +839,58 @@ function markReceived(id){
 }
 
 /* ===== EDIT MODAL ===== */
+let _autoSaveTimer = null;
+
 function openEdit(id){
   const r=getRecord(id);
   if(!r) return;
   document.getElementById('editId').value=id;
   document.getElementById('editName').value=r.name;
-  document.getElementById('editAddr').value=r.addr;
+  document.getElementById('editAddr').value=r.addr||'';
   document.getElementById('editDt').value=r.dt||0;
   document.getElementById('editBt').value=r.bt||0;
   document.getElementById('editP20').value=r.p20||0;
   document.getElementById('editCbs').value=r.cbs||0;
   document.getElementById('editStatus').value=isReceived(id)?'1':'0';
+  document.getElementById('autoSaveStatus').textContent='';
+  updateTotalPreview();
+
+  const g=isGuest();
+  /* Lock/unlock all fields */
+  ['editName','editAddr','editDt','editBt','editP20','editCbs','editStatus'].forEach(fid=>{
+    const el=document.getElementById(fid);
+    if(el){ el.disabled=g; el.style.opacity=g?'0.55':'1'; el.style.cursor=g?'not-allowed':''; }
+  });
+  document.getElementById('guestModalNote').style.display=g?'block':'none';
+  document.getElementById('btnSaveEdit').style.display='none'; /* hidden — auto-save handles it */
   document.getElementById('modalBg').classList.add('open');
 }
 
-function closeModal(){document.getElementById('modalBg').classList.remove('open');}
+function updateTotalPreview(){
+  const bt=num(document.getElementById('editBt').value);
+  const p20=num(document.getElementById('editP20').value);
+  const cbs=num(document.getElementById('editCbs').value);
+  const total=bt+p20+cbs;
+  const el=document.getElementById('editTotalVal');
+  if(el) el.textContent=fmt(total)+' đồng';
+}
 
-function saveEdit(){
+function autoSaveEdit(){
+  if(isGuest()) return;
+  updateTotalPreview();
+  /* Debounce 800ms for text fields, instant for select/number */
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer=setTimeout(()=>{
+    _doSaveEdit();
+  }, 600);
+}
+
+function _doSaveEdit(){
   const id=parseInt(document.getElementById('editId').value);
   const r=getRecord(id);
   if(!r) return;
-  r.name=document.getElementById('editName').value.trim()||r.name;
+  const name=document.getElementById('editName').value.trim();
+  r.name=name||r.name;
   r.addr=document.getElementById('editAddr').value.trim()||r.addr;
   r.dt=num(document.getElementById('editDt').value);
   r.bt=num(document.getElementById('editBt').value);
@@ -861,8 +901,16 @@ function saveEdit(){
   const wasReceived=isReceived(id);
   if(newStatus&&!wasReceived) state.received.push(id);
   else if(!newStatus&&wasReceived) state.received=state.received.filter(x=>x!==id);
-  saveState(); renderAll(); closeModal();
-  showToast('✅ Đã lưu thay đổi');
+  saveState(); renderAll();
+  const st=document.getElementById('autoSaveStatus');
+  if(st){ st.textContent='✅ Đã tự động lưu'; setTimeout(()=>{if(st)st.textContent='';},2500); }
+}
+
+function saveEdit(){ _doSaveEdit(); closeModal(); }
+
+function closeModal(){
+  clearTimeout(_autoSaveTimer);
+  document.getElementById('modalBg').classList.remove('open');
 }
 
 /* ===== FILE UPLOAD — Tab Cập nhật (chỉ dùng tên, lấy số liệu từ danh sách chưa nhận) ===== */
