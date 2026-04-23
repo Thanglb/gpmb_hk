@@ -1141,17 +1141,21 @@ function calcTotals(list){
   };
 }
 
+function isGuest(){ return currentUser && currentUser.role === 'guest'; }
+
 function renderMetrics(){
   const rec=state.records.filter(r=>isReceived(r.id));
   const t=calcTotals(state.records);
   const rt=calcTotals(rec);
   const pctHo=t.ho>0?Math.round(rt.ho/t.ho*100):0;
+  const cbsCard=isGuest()?'':
+    `<div class="mcard purple"><div class="mlabel">Chi bổ sung</div><div class="mval" style="font-size:14px">${fmt(rt.cbs)}</div><div class="msub">đồng</div></div>`;
   document.getElementById('metricsGrid').innerHTML=`
     <div class="mcard blue"><div class="mlabel">Số hộ đã nhận</div><div class="mval">${rt.ho}</div><div class="msub">/ ${t.ho} hộ · ${pctHo}%</div></div>
     <div class="mcard"><div class="mlabel">Diện tích (m²)</div><div class="mval" style="font-size:16px">${fmt(rt.dt)}</div><div class="msub">${t.dt>0?Math.round(rt.dt/t.dt*100):0}% tổng DT</div></div>
     <div class="mcard green"><div class="mlabel">Bồi thường</div><div class="mval" style="font-size:14px">${fmt(rt.bt)}</div><div class="msub">đồng</div></div>
     <div class="mcard amber"><div class="mlabel">20% tăng thêm</div><div class="mval" style="font-size:14px">${fmt(rt.p20)}</div><div class="msub">đồng</div></div>
-    <div class="mcard purple"><div class="mlabel">Chi bổ sung</div><div class="mval" style="font-size:14px">${fmt(rt.cbs)}</div><div class="msub">đồng</div></div>`;
+    ${cbsCard}`;
 }
 
 function renderProgress(){
@@ -1178,7 +1182,8 @@ function renderCharts(){
 
 function rowHtml(r,i,opts={}){
   const {showStatus=false,showRemove=false,showEdit=true}=opts;
-  const total=calcTotal(r);
+  const g=isGuest();
+  const total=g?(r.bt||0)+(r.p20||0):calcTotal(r);
   return `<tr>
     <td>${i+1}</td>
     <td>${r.name}</td>
@@ -1186,7 +1191,8 @@ function rowHtml(r,i,opts={}){
     <td>${r.dt>0?fmt(r.dt):'—'}</td>
     <td>${fmt(r.bt)}</td>
     <td>${r.p20>0?fmt(r.p20):'—'}</td>
-    <td>${r.cbs>0?`<span style="color:var(--purple);font-weight:600">${fmt(r.cbs)}</span>`:'—'}</td>
+    ${g?'':
+      `<td>${r.cbs>0?`<span style="color:var(--purple);font-weight:600">${fmt(r.cbs)}</span>`:'—'}</td>`}
     <td>${fmt(total)}</td>
     ${showStatus?`<td><span class="badge-da">✓ Đã nhận</span></td>`:''}
     ${showEdit?`<td><button class="btn-edit" onclick="openEdit(${r.id})" title="Chỉnh sửa">✏️</button></td>`:''}
@@ -1202,7 +1208,12 @@ function renderRecentTable(){
   const list=state.records.filter(r=>isReceived(r.id)).slice().reverse();
   document.getElementById('recCnt').textContent=list.length;
   const tb=document.getElementById('recentTable');
-  if(!list.length){tb.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="ei">📭</div><p>Chưa có hộ nào</p></div></td></tr>`;return;}
+  const g=isGuest();
+  if(!list.length){tb.innerHTML=`<tr><td colspan="${g?9:10}"><div class="empty-state"><div class="ei">📭</div><p>Chưa có hộ nào</p></div></td></tr>`;return;}
+  const thead=document.querySelector('#tab-update table thead tr');
+  if(thead){
+    thead.innerHTML=`<th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th>${g?'':'<th>Chi bổ sung</th>'}<th>Tổng</th><th>Sửa</th><th></th>`;
+  }
   tb.innerHTML=list.map((r,i)=>rowHtml(r,i,{showRemove:true,showEdit:true})).join('');
 }
 
@@ -1211,10 +1222,18 @@ function renderReceivedTable(){
   const list=state.records.filter(r=>isReceived(r.id)&&(!q||norm(r.name).includes(norm(q))));
   document.getElementById('recvCount').textContent=list.length;
   const tb=document.getElementById('receivedTable');
-  if(!list.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="ei">📭</div><p>${q?'Không tìm thấy':'Chưa có hộ nào nhận tiền'}</p></div></td></tr>`;return;}
+  const g=isGuest();
+  const cols=g?10:11;
+  /* update header */
+  const thead=document.querySelector('#tab-received table thead tr');
+  if(thead){
+    thead.innerHTML=`<th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th>${g?'':'<th>Chi bổ sung</th>'}<th>Tổng</th><th>Trạng thái</th><th>Sửa</th><th></th>`;
+  }
+  if(!list.length){tb.innerHTML=`<tr><td colspan="${cols}"><div class="empty-state"><div class="ei">📭</div><p>${q?'Không tìm thấy':'Chưa có hộ nào nhận tiền'}</p></div></td></tr>`;return;}
   const t=calcTotals(list);
+  const totalVal=g?t.bt+t.p20:t.total;
   tb.innerHTML=list.map((r,i)=>rowHtml(r,i,{showStatus:true,showRemove:true,showEdit:true})).join('')
-    +`<tr class="tfoot"><td colspan="3">Tổng cộng</td><td>${fmt(t.dt)} m²</td><td>${fmt(t.bt)}</td><td>${fmt(t.p20)}</td><td>${t.cbs>0?fmt(t.cbs):'—'}</td><td>${fmt(t.total)}</td><td colspan="3"></td></tr>`;
+    +`<tr class="tfoot"><td colspan="3">Tổng cộng</td><td>${fmt(t.dt)} m²</td><td>${fmt(t.bt)}</td><td>${fmt(t.p20)}</td>${g?'':'<td>'+(t.cbs>0?fmt(t.cbs):'—')+'</td>'}<td>${fmt(totalVal)}</td><td colspan="3"></td></tr>`;
 }
 
 function renderPendingTable(){
@@ -1222,19 +1241,31 @@ function renderPendingTable(){
   const list=state.records.filter(r=>!isReceived(r.id)&&(!q||norm(r.name).includes(norm(q))));
   document.getElementById('pendCount').textContent=list.length;
   const tb=document.getElementById('pendingTable');
-  if(!list.length){tb.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="ei">🎉</div><p>${q?'Không tìm thấy kết quả':'Tất cả hộ đã nhận tiền!'}</p></div></td></tr>`;return;}
+  const g=isGuest();
+  /* update header */
+  const thead=document.querySelector('#tab-pending table thead tr');
+  if(thead){
+    thead.innerHTML=`<th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th>${g?'':'<th>Chi bổ sung</th>'}<th>Tổng</th><th>Đánh dấu</th><th>Sửa</th>`;
+  }
+  const cols=g?9:10;
+  if(!list.length){tb.innerHTML=`<tr><td colspan="${cols}"><div class="empty-state"><div class="ei">🎉</div><p>${q?'Không tìm thấy kết quả':'Tất cả hộ đã nhận tiền!'}</p></div></td></tr>`;return;}
   const t=calcTotals(list);
-  tb.innerHTML=list.map((r,i)=>`<tr>
-    <td>${i+1}</td><td>${r.name}</td><td>${r.addr||'—'}</td>
-    <td>${r.dt>0?fmt(r.dt):'—'}</td>
-    <td>${fmt(r.bt)}</td>
-    <td>${r.p20>0?fmt(r.p20):'—'}</td>
-    <td>${r.cbs>0?`<span style="color:var(--purple);font-weight:600">${fmt(r.cbs)}</span>`:'—'}</td>
-    <td>${fmt(calcTotal(r))}</td>
-    <td><button class="btn-mark" onclick="markReceived(${r.id})">✅ Đã nhận</button></td>
-    <td><button class="btn-edit" onclick="openEdit(${r.id})" title="Chỉnh sửa">✏️</button></td>
-  </tr>`).join('')
-    +`<tr class="tfoot"><td colspan="3">Tổng chưa nhận</td><td>${fmt(t.dt)} m²</td><td>${fmt(t.bt)}</td><td>${fmt(t.p20)}</td><td>${t.cbs>0?fmt(t.cbs):'—'}</td><td>${fmt(t.total)}</td><td colspan="2"></td></tr>`;
+  const totalVal=g?t.bt+t.p20:t.total;
+  tb.innerHTML=list.map((r,i)=>{
+    const rowTotal=g?(r.bt||0)+(r.p20||0):calcTotal(r);
+    return `<tr>
+      <td>${i+1}</td><td>${r.name}</td><td>${r.addr||'—'}</td>
+      <td>${r.dt>0?fmt(r.dt):'—'}</td>
+      <td>${fmt(r.bt)}</td>
+      <td>${r.p20>0?fmt(r.p20):'—'}</td>
+      ${g?'':
+        `<td>${r.cbs>0?`<span style="color:var(--purple);font-weight:600">${fmt(r.cbs)}</span>`:'—'}</td>`}
+      <td>${fmt(rowTotal)}</td>
+      <td><button class="btn-mark" onclick="markReceived(${r.id})">✅ Đã nhận</button></td>
+      <td><button class="btn-edit" onclick="openEdit(${r.id})" title="Chỉnh sửa">✏️</button></td>
+    </tr>`;
+  }).join('')
+    +`<tr class="tfoot"><td colspan="3">Tổng chưa nhận</td><td>${fmt(t.dt)} m²</td><td>${fmt(t.bt)}</td><td>${fmt(t.p20)}</td>${g?'':'<td>'+(t.cbs>0?fmt(t.cbs):'—')+'</td>'}<td>${fmt(totalVal)}</td><td colspan="2"></td></tr>`;
 }
 
 function renderReport(){
@@ -1243,22 +1274,41 @@ function renderReport(){
   const rt=calcTotals(rec),pt=calcTotals(pend),all=calcTotals(state.records);
   const pHo=all.ho>0?Math.round(rt.ho/all.ho*100):0;
   const pDt=all.dt>0?Math.round(rt.dt/all.dt*100):0;
+  const g=isGuest();
+  const rtTotal=g?rt.bt+rt.p20:rt.total;
+  const ptTotal=g?pt.bt+pt.p20:pt.total;
+  const allTotal=g?all.bt+all.p20:all.total;
   document.getElementById('compareGrid').innerHTML=`
     <div class="ci blue"><div class="ci-pct">${pHo}%</div><div class="ci-label">ĐÃ NHẬN</div><div class="ci-count">${rt.ho} hộ · ${fmt(rt.dt)} m²</div></div>
     <div class="ci gray"><div class="ci-pct">${100-pHo}%</div><div class="ci-label">CHƯA NHẬN</div><div class="ci-count">${pt.ho} hộ · ${fmt(pt.dt)} m²</div></div>`;
   const rows=(items)=>items.map(([l,v,cls])=>`<div class="rrow"><span class="rlbl">${l}</span><span class="rval ${cls||''}">${v}</span></div>`).join('');
-  document.getElementById('rptDa').innerHTML=rows([
-    ['Số hộ',rt.ho+' hộ ('+pHo+'%)','blue'],['Diện tích',fmt(rt.dt)+' m² ('+pDt+'%)',''],
-    ['Tiền bồi thường',fmt(rt.bt)+' đồng','green'],['20% tăng thêm',fmt(rt.p20)+' đồng',''],
-    ['Chi bổ sung thêm',fmt(rt.cbs)+' đồng',''],['Tổng cộng',fmt(rt.total)+' đồng','blue']]);
-  document.getElementById('rptChua').innerHTML=rows([
-    ['Số hộ',pt.ho+' hộ ('+(100-pHo)+'%)',''],['Diện tích',fmt(pt.dt)+' m²',''],
-    ['Tiền bồi thường',fmt(pt.bt)+' đồng',''],['20% tăng thêm',fmt(pt.p20)+' đồng',''],
-    ['Chi bổ sung thêm',fmt(pt.cbs)+' đồng',''],['Tổng còn lại',fmt(pt.total)+' đồng','']]);
-  document.getElementById('rptAll').innerHTML=rows([
-    ['Tổng số hộ',all.ho+' hộ',''],['Tổng diện tích',fmt(all.dt)+' m²',''],
-    ['Tổng bồi thường',fmt(all.bt)+' đồng',''],['Tổng 20%',fmt(all.p20)+' đồng',''],
-    ['Tổng chi bổ sung',fmt(all.cbs)+' đồng',''],['Tổng toàn dự án',fmt(all.total)+' đồng','blue']]);
+  const daRows=[
+    ['Số hộ',rt.ho+' hộ ('+pHo+'%)','blue'],
+    ['Diện tích',fmt(rt.dt)+' m² ('+pDt+'%)',''],
+    ['Tiền bồi thường',fmt(rt.bt)+' đồng','green'],
+    ['20% tăng thêm',fmt(rt.p20)+' đồng',''],
+    ...(!g?[['Chi bổ sung thêm',fmt(rt.cbs)+' đồng','']]:[]),
+    ['Tổng cộng',fmt(rtTotal)+' đồng','blue']
+  ];
+  const chuaRows=[
+    ['Số hộ',pt.ho+' hộ ('+(100-pHo)+'%)',''],
+    ['Diện tích',fmt(pt.dt)+' m²',''],
+    ['Tiền bồi thường',fmt(pt.bt)+' đồng',''],
+    ['20% tăng thêm',fmt(pt.p20)+' đồng',''],
+    ...(!g?[['Chi bổ sung thêm',fmt(pt.cbs)+' đồng','']]:[]),
+    ['Tổng còn lại',fmt(ptTotal)+' đồng','']
+  ];
+  const allRows=[
+    ['Tổng số hộ',all.ho+' hộ',''],
+    ['Tổng diện tích',fmt(all.dt)+' m²',''],
+    ['Tổng bồi thường',fmt(all.bt)+' đồng',''],
+    ['Tổng 20%',fmt(all.p20)+' đồng',''],
+    ...(!g?[['Tổng chi bổ sung',fmt(all.cbs)+' đồng','']]:[]),
+    ['Tổng toàn dự án',fmt(allTotal)+' đồng','blue']
+  ];
+  document.getElementById('rptDa').innerHTML=rows(daRows);
+  document.getElementById('rptChua').innerHTML=rows(chuaRows);
+  document.getElementById('rptAll').innerHTML=rows(allRows);
 }
 
 /* ===== AUTH ===== */
