@@ -539,7 +539,7 @@ td:hover .edit-icon{opacity:1}
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal()">Đóng</button>
-      <button class="btn-save" id="btnSaveEdit" onclick="saveEdit()" style="display:none">💾 Lưu</button>
+      <button class="btn-save" onclick="saveEdit()">💾 Lưu & Đóng</button>
     </div>
   </div>
 </div>
@@ -906,10 +906,21 @@ function _doSaveEdit(){
   if(st){ st.textContent='✅ Đã tự động lưu'; setTimeout(()=>{if(st)st.textContent='';},2500); }
 }
 
-function saveEdit(){ _doSaveEdit(); closeModal(); }
+function saveEdit(){
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer=null;
+  _doSaveEdit();
+  document.getElementById('modalBg').classList.remove('open');
+  showToast('✅ Đã lưu');
+}
 
 function closeModal(){
-  clearTimeout(_autoSaveTimer);
+  /* Flush bất kỳ auto-save đang chờ trước khi đóng */
+  if(_autoSaveTimer){
+    clearTimeout(_autoSaveTimer);
+    _autoSaveTimer=null;
+    _doSaveEdit();
+  }
   document.getElementById('modalBg').classList.remove('open');
 }
 
