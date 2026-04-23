@@ -711,6 +711,10 @@ async function createBin(){
 
 let saveTimer=null;
 function saveState(){
+  if(currentUser && currentUser.role === 'guest'){
+    showToast('🔒 Guest không có quyền lưu');
+    return;
+  }
   localStorage.setItem('gpmb_v3',JSON.stringify(state));
   showToast('💾 Đã lưu');
   if(cloudEnabled&&_cloudKey){
@@ -924,11 +928,17 @@ function closeModal(){
   document.getElementById('modalBg').classList.remove('open');
 }
 
-/* ===== FILE UPLOAD — Tab Cập nhật (chỉ dùng tên, lấy số liệu từ danh sách chưa nhận) ===== */
-const uz=document.getElementById('uploadZone');
-uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
-uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
-uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f);});
+/* ===== FILE UPLOAD — Tab Cập nhật ===== */
+function handleFileUpload(e){const f=e.target.files[0];if(f)processFile(f);e.target.value='';}
+
+function initUploadZone(){
+  const uz=document.getElementById('uploadZone');
+  if(!uz) return;
+  uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
+  uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+  uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f);});
+}
+initUploadZone();
 
 function handleFileUpload(e){const f=e.target.files[0];if(f)processFile(f);e.target.value='';}
 
@@ -1066,16 +1076,23 @@ function importAllMatched(){
 }
 
 function clearPreview(){
-  document.getElementById('excelPreview').style.display='none';
+  const el=document.getElementById('excelPreview');
+  if(el) el.style.display='none';
   importRows=[];
 }
 
 /* ===== PENDING TAB UPLOAD ===== */
 let importRowsPend=[];
-const uzPend=document.getElementById('uploadZonePend');
-uzPend.addEventListener('dragover',e=>{e.preventDefault();uzPend.classList.add('drag');});
-uzPend.addEventListener('dragleave',()=>uzPend.classList.remove('drag'));
-uzPend.addEventListener('drop',e=>{e.preventDefault();uzPend.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFilePend(f);});
+function handleFileUploadPend(e){const f=e.target.files[0];if(f)processFilePend(f);e.target.value='';}
+
+function initUploadZonePend(){
+  const uzPend=document.getElementById('uploadZonePend');
+  if(!uzPend) return;
+  uzPend.addEventListener('dragover',e=>{e.preventDefault();uzPend.classList.add('drag');});
+  uzPend.addEventListener('dragleave',()=>uzPend.classList.remove('drag'));
+  uzPend.addEventListener('drop',e=>{e.preventDefault();uzPend.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFilePend(f);});
+}
+initUploadZonePend();
 
 function handleFileUploadPend(e){const f=e.target.files[0];if(f)processFilePend(f);e.target.value='';}
 
@@ -1441,29 +1458,14 @@ function applyAuth(){
     el.style.display = isGuest ? 'none' : '';
   });
 
-  /* Disable action buttons */
-  document.querySelectorAll('.btn-add,.btn-mark,.btn-rm,.btn-edit,.btn-save').forEach(btn=>{
-    if(isGuest){
-      btn.disabled = true;
-      btn.style.opacity = '0.4';
-      btn.style.cursor = 'not-allowed';
-    } else {
-      btn.disabled = false;
-      btn.style.opacity = '';
-      btn.style.cursor = '';
-    }
-  });
+  /* Re-init upload drag zones in case panels were just shown */
+  if(!isGuest){
+    initUploadZone();
+    initUploadZonePend();
+  }
 }
 
-/* Override saveState to block guests */
-const _origSaveState = saveState;
-function saveState(){
-  if(currentUser && currentUser.role === 'guest'){
-    showToast('🔒 Guest không có quyền lưu dữ liệu');
-    return;
-  }
-  _origSaveState();
-}
+/* Guest save blocked inside saveState directly */
 
 /* ===== INIT ===== */
 const banner = document.getElementById('cloudSetupBanner');
