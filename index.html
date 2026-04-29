@@ -4,958 +4,1615 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a3a5c">
-<title>GPMB — Theo dõi Bồi thường</title>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#1e3a5f">
+<title>GPMB — Quản lý Bồi thường</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{
-  --blue:#1a3a5c;--blue-mid:#2563a8;--blue-lt:#dbeafe;--blue-acc:#3b82f6;
-  --green:#166534;--green-lt:#dcfce7;--red:#991b1b;--red-lt:#fee2e2;
-  --amber:#92400e;--amber-lt:#fef3c7;--purple:#6d28d9;--purple-lt:#ede9fe;
-  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g400:#94a3b8;--g600:#475569;--g800:#1e293b;
-  --sh-sm:0 1px 3px rgba(0,0,0,.08);--sh-md:0 4px 16px rgba(0,0,0,.1);--sh-lg:0 8px 32px rgba(0,0,0,.12);
-  --r:12px;--r-sm:8px;--font:'Be Vietnam Pro',sans-serif;
-}
+/* ============================================================
+   RESET & VARIABLES
+   ============================================================ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:var(--font);background:var(--g50);color:var(--g800);min-height:100vh;font-size:14px;line-height:1.6}
+:root{
+  --blue:#1e3a5f;--blue2:#2563a8;--blue3:#3b82f6;--blue-lt:#dbeafe;
+  --green:#166534;--green-lt:#dcfce7;--green2:#22c55e;
+  --red:#991b1b;--red-lt:#fee2e2;
+  --amber:#92400e;--amber-lt:#fef3c7;
+  --purple:#6d28d9;--purple-lt:#ede9fe;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g600:#475569;--g800:#1e293b;
+  --white:#fff;
+  --sh1:0 1px 3px rgba(0,0,0,.08);
+  --sh2:0 4px 16px rgba(0,0,0,.10);
+  --sh3:0 8px 32px rgba(0,0,0,.14);
+  --r:12px;--r2:8px;--r3:6px;
+  --font:'Be Vietnam Pro',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--g50);color:var(--g800);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
 
-/* HEADER */
-.app-header{background:linear-gradient(135deg,#1a3a5c,#2563a8);color:#fff;position:sticky;top:0;z-index:100;box-shadow:var(--sh-md)}
-.header-inner{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px}
-.header-icon{width:38px;height:38px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+/* ============================================================
+   LOGIN
+   ============================================================ */
+#loginScreen{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#1e3a5f 0%,#2563a8 60%,#1e40af 100%);
+  z-index:9999;padding:20px;
+}
+#loginScreen.show{display:flex}
+.login-box{
+  background:var(--white);border-radius:20px;padding:40px 36px;
+  width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,.3);
+}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo-icon{font-size:44px;margin-bottom:10px;display:block}
+.login-logo h2{font-size:20px;font-weight:800;color:var(--blue);margin-bottom:4px}
+.login-logo p{font-size:12px;color:var(--g400);line-height:1.5}
+.login-err{
+  display:none;background:var(--red-lt);color:var(--red);
+  border:1px solid #fca5a5;border-radius:var(--r2);
+  padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:14px;
+}
+.login-err.show{display:block}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px}
+.form-field input{
+  width:100%;padding:12px 14px;border:1.5px solid var(--g200);
+  border-radius:var(--r2);font-size:14px;font-family:var(--font);
+  color:var(--g800);background:var(--g50);outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-field input:focus{border-color:var(--blue3);background:var(--white);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.btn-login{
+  width:100%;padding:14px;background:var(--blue2);color:var(--white);
+  border:none;border-radius:var(--r2);font-size:15px;font-weight:700;
+  font-family:var(--font);cursor:pointer;transition:background .2s,transform .1s;margin-top:4px;
+}
+.btn-login:hover{background:var(--blue)}
+.btn-login:active{transform:scale(.98)}
+.login-hint{
+  margin-top:18px;padding:12px 14px;background:var(--g50);
+  border:1px solid var(--g200);border-radius:var(--r2);
+  font-size:12px;color:var(--g600);text-align:center;line-height:1.8;
+}
+.login-hint strong{color:var(--blue2)}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header{
+  background:linear-gradient(135deg,#1e3a5f,#2563a8);
+  color:var(--white);position:sticky;top:0;z-index:100;box-shadow:var(--sh2);
+}
+.header-inner{max-width:1400px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px}
+.header-icon{
+  width:38px;height:38px;background:rgba(255,255,255,.15);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
 .header-text h1{font-size:15px;font-weight:700;line-height:1.2}
 .header-text p{font-size:11px;opacity:.7;margin-top:1px}
-.header-badge{margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.header-badge{
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
+  color:var(--white);font-size:11px;font-weight:600;padding:4px 10px;
+  border-radius:20px;white-space:nowrap;
+}
+.user-pill{
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
+  color:var(--white);font-size:11px;font-weight:600;padding:4px 10px;
+  border-radius:20px;display:flex;align-items:center;gap:4px;
+}
+.user-pill.guest{background:rgba(251,191,36,.25);border-color:rgba(251,191,36,.5)}
+.btn-logout{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:var(--white);font-size:11px;padding:4px 10px;border-radius:20px;
+  cursor:pointer;font-family:var(--font);transition:background .2s;white-space:nowrap;
+}
+.btn-logout:hover{background:rgba(255,255,255,.25)}
+.sync-bar{
+  background:rgba(0,0,0,.2);padding:4px 20px;font-size:11px;
+  display:flex;align-items:center;gap:8px;max-width:100%;
+}
+.sync-bar-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:8px;width:100%}
+#hBadge{color:rgba(255,255,255,.85);font-weight:600}
+#syncStatus{color:rgba(255,255,255,.6);transition:opacity .4s;margin-left:4px}
+#cloudBadge{
+  margin-left:auto;font-size:10px;padding:2px 8px;
+  border-radius:999px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);
+}
 
-/* TABS */
-.nav-tabs{background:#fff;border-bottom:1px solid var(--g200);position:sticky;top:86px;z-index:90;overflow-x:auto;scrollbar-width:none}
+/* ============================================================
+   TABS
+   ============================================================ */
+.nav-tabs{
+  background:var(--white);border-bottom:1px solid var(--g200);
+  position:sticky;top:70px;z-index:90;overflow-x:auto;scrollbar-width:none;
+}
 .nav-tabs::-webkit-scrollbar{display:none}
-.nav-inner{max-width:1280px;margin:0 auto;display:flex;padding:0 16px}
-.tab-btn{padding:13px 16px;font-size:13px;font-weight:500;color:var(--g600);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:5px;font-family:var(--font)}
-.tab-btn:hover{color:var(--blue-mid)}
-.tab-btn.active{color:var(--blue-mid);border-bottom-color:var(--blue-mid);font-weight:600}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;padding:0 16px}
+.tab-btn{
+  padding:13px 16px;font-size:13px;font-weight:500;color:var(--g600);
+  border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all .2s;display:flex;align-items:center;
+  gap:6px;font-family:var(--font);
+}
+.tab-btn:hover{color:var(--blue2)}
+.tab-btn.active{color:var(--blue2);border-bottom-color:var(--blue2);font-weight:700}
 
-/* MAIN */
-.main{max-width:1280px;margin:0 auto;padding:16px 14px 80px}
-.tab-pane{display:none}.tab-pane.active{display:block}
+/* ============================================================
+   MAIN LAYOUT
+   ============================================================ */
+.main{max-width:1400px;margin:0 auto;padding:18px 16px 80px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
 
-/* CARDS */
+/* ============================================================
+   METRIC CARDS
+   ============================================================ */
 .metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-@media(min-width:640px){.metrics-grid{grid-template-columns:repeat(5,1fr)}}
-.mcard{background:#fff;border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh-sm);border:1px solid var(--g200)}
-.mcard.blue{background:#eff6ff;border-color:#bfdbfe}
-.mcard.green{background:var(--green-lt);border-color:#86efac}
-.mcard.amber{background:var(--amber-lt);border-color:#fcd34d}
-.mcard.purple{background:var(--purple-lt);border-color:#c4b5fd}
+@media(min-width:640px){.metrics-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:960px){.metrics-grid{grid-template-columns:repeat(5,1fr)}}
+.mcard{background:var(--white);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh1);border:1px solid var(--g200)}
+.mcard.c-blue{background:#eff6ff;border-color:#bfdbfe}
+.mcard.c-green{background:var(--green-lt);border-color:#86efac}
+.mcard.c-amber{background:var(--amber-lt);border-color:#fcd34d}
+.mcard.c-purple{background:var(--purple-lt);border-color:#c4b5fd}
+.mcard.c-teal{background:#f0fdfa;border-color:#99f6e4}
 .mlabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--g600);margin-bottom:5px}
 .mval{font-size:22px;font-weight:700;color:var(--g800);line-height:1;margin-bottom:3px}
-.mcard.blue .mval{color:var(--blue-mid)}
-.mcard.green .mval{color:var(--green)}
-.mcard.amber .mval{color:var(--amber)}
-.mcard.purple .mval{color:var(--purple)}
+.mcard.c-blue .mval{color:var(--blue2)}
+.mcard.c-green .mval{color:var(--green)}
+.mcard.c-amber .mval{color:var(--amber)}
+.mcard.c-purple .mval{color:var(--purple)}
+.mcard.c-teal .mval{color:#0f766e}
 .msub{font-size:11px;color:var(--g400)}
 
-/* PROGRESS */
-.prog-box{background:#fff;border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh-sm);border:1px solid var(--g200);margin-bottom:16px}
-.prog-hdr{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+.prog-box{background:var(--white);border-radius:var(--r);padding:16px;box-shadow:var(--sh1);border:1px solid var(--g200);margin-bottom:16px}
+.prog-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px}
 .prog-title{font-weight:600}
-.prog-pct{font-weight:700;color:var(--blue-mid)}
+.prog-pct{font-weight:700;color:var(--blue2)}
 .prog-track{background:var(--g100);border-radius:999px;height:10px;overflow:hidden;margin-bottom:7px}
-.prog-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2563a8,#3b82f6);transition:width .7s cubic-bezier(.4,0,.2,1)}
+.prog-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue2),var(--blue3));transition:width .7s cubic-bezier(.4,0,.2,1)}
 .prog-legend{display:flex;gap:14px;font-size:12px;color:var(--g600)}
-.ldot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:3px}
+.ldot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
 
 /* CHARTS */
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 @media(max-width:480px){.charts-row{grid-template-columns:1fr}}
-.ch-card{background:#fff;border-radius:var(--r);padding:14px;box-shadow:var(--sh-sm);border:1px solid var(--g200)}
-.ch-label{font-size:11px;font-weight:600;color:var(--g600);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+.ch-card{background:var(--white);border-radius:var(--r);padding:14px;box-shadow:var(--sh1);border:1px solid var(--g200)}
+.ch-lbl{font-size:11px;font-weight:600;color:var(--g600);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
 .ch-wrap{position:relative;height:155px}
 
-.pend-add-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-@media(min-width:640px){.pend-add-grid{grid-template-columns:repeat(3,1fr)}}
-.btn-mark{padding:5px 10px;background:var(--green-lt);color:var(--green);border:1px solid #86efac;border-radius:var(--r-sm);font-size:11px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all .15s}
+/* ============================================================
+   PANELS
+   ============================================================ */
+.panel{background:var(--white);border-radius:var(--r);padding:16px;box-shadow:var(--sh1);border:1px solid var(--g200);margin-bottom:14px}
+.panel h3{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.panel-desc{font-size:12px;color:var(--g600);margin-bottom:12px;line-height:1.6}
+
+/* ============================================================
+   INPUTS & BUTTONS
+   ============================================================ */
+.irow{display:flex;gap:8px;margin-bottom:10px}
+.ifield{
+  flex:1;padding:10px 13px;border:1.5px solid var(--g200);
+  border-radius:var(--r2);font-size:13px;font-family:var(--font);
+  color:var(--g800);background:var(--g50);outline:none;
+  transition:border-color .2s,box-shadow .2s;min-width:0;
+}
+.ifield:focus{border-color:var(--blue3);background:var(--white);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.ifield::placeholder{color:var(--g400)}
+.ifield:disabled{opacity:.5;cursor:not-allowed;background:var(--g100)}
+.igrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+@media(min-width:640px){.igrid.cols3{grid-template-columns:repeat(3,1fr)}}
+.btn{
+  padding:10px 16px;border-radius:var(--r2);font-size:13px;font-weight:600;
+  font-family:var(--font);cursor:pointer;transition:all .2s;border:none;
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue2);color:var(--white)}
+.btn-primary:hover{background:var(--blue)}
+.btn-success{background:var(--green);color:var(--white)}
+.btn-success:hover{background:#14532d}
+.btn-danger{background:var(--red);color:var(--white)}
+.btn-danger:hover{background:#7f1d1d}
+.btn-ghost{background:var(--white);color:var(--g600);border:1.5px solid var(--g200)}
+.btn-ghost:hover{border-color:var(--g400);color:var(--g800)}
+.btn-sm{padding:6px 10px;font-size:11px}
+.btn-icon{width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r3);font-size:14px;border:none;cursor:pointer;transition:all .15s}
+.btn-edit-icon{background:none;color:var(--g400)}
+.btn-edit-icon:hover{background:var(--blue-lt);color:var(--blue2)}
+.btn-del-icon{background:none;color:var(--g400)}
+.btn-del-icon:hover{background:var(--red-lt);color:var(--red)}
+.btn-mark{
+  padding:5px 10px;background:var(--green-lt);color:var(--green);
+  border:1px solid #86efac;border-radius:var(--r3);font-size:11px;
+  font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;
+}
 .btn-mark:hover{background:#bbf7d0}
 
-/* PANEL */
-.panel{background:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--sh-sm);border:1px solid var(--g200);margin-bottom:14px}
-.panel h3{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:7px}
-
-/* UPLOAD ZONE */
-.upload-zone{border:2px dashed var(--g200);border-radius:var(--r-sm);padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px;position:relative}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--blue-acc);background:var(--blue-lt)}
-.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.upload-icon{font-size:28px;margin-bottom:6px}
-.upload-text{font-size:13px;color:var(--g600)}
-.upload-hint{font-size:11px;color:var(--g400);margin-top:3px}
-
-/* EXCEL PREVIEW */
-.excel-preview{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-sm);padding:12px;margin-bottom:12px;display:none}
-.ep-title{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:8px}
-.ep-table-wrap{overflow-x:auto}
-.ep-table{width:100%;font-size:12px;border-collapse:collapse;min-width:400px}
-.ep-table th{background:var(--g100);padding:6px 10px;text-align:left;border-bottom:1px solid var(--g200);font-weight:600;font-size:11px;color:var(--g600)}
-.ep-table td{padding:5px 10px;border-bottom:1px solid var(--g100);color:var(--g800)}
-.ep-table tr:last-child td{border-bottom:none}
-
-/* INPUT ROW */
-.input-row{display:flex;gap:8px;margin-bottom:10px}
-.ifield{flex:1;padding:10px 13px;border:1.5px solid var(--g200);border-radius:var(--r-sm);font-size:13px;font-family:var(--font);color:var(--g800);background:var(--g50);outline:none;transition:border-color .2s,box-shadow .2s;min-width:0}
-.ifield:focus{border-color:var(--blue-acc);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
-.ifield::placeholder{color:var(--g400)}
-.btn-add{padding:10px 16px;background:var(--blue-mid);color:#fff;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:background .2s,transform .1s}
-.btn-add:hover{background:var(--blue)}.btn-add:active{transform:scale(.97)}
-.btn-ghost{padding:8px 14px;background:#fff;color:var(--g600);border:1.5px solid var(--g200);border-radius:var(--r-sm);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:all .2s}
-.btn-ghost:hover{border-color:var(--g400);color:var(--g800)}
-
-/* SUGGEST */
-.suggest-box{background:#fff;border:1.5px solid var(--blue-acc);border-radius:var(--r-sm);margin-top:6px;overflow:hidden;display:none;box-shadow:var(--sh-md);max-height:240px;overflow-y:auto}
+/* ============================================================
+   SUGGEST BOX
+   ============================================================ */
+.suggest-wrap{position:relative}
+.suggest-box{
+  background:var(--white);border:1.5px solid var(--blue3);border-radius:var(--r2);
+  margin-top:6px;overflow:hidden;display:none;box-shadow:var(--sh2);
+  max-height:240px;overflow-y:auto;position:absolute;width:100%;z-index:50;
+}
 .si{padding:9px 13px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--g100);transition:background .15s}
 .si:last-child{border-bottom:none}
 .si:hover,.si:active{background:var(--blue-lt)}
 .si-name{font-weight:500}
-.si-addr{font-size:11px;color:var(--g400);margin-top:1px}
+.si-sub{font-size:11px;color:var(--g400);margin-top:1px}
 
-/* ALERTS */
-.alert{display:none;padding:9px 13px;border-radius:var(--r-sm);font-size:13px;margin-top:8px;font-weight:500;align-items:center;gap:7px}
-.alert.ok{display:flex;background:var(--green-lt);color:var(--green);border:1px solid #86efac}
-.alert.warn{display:flex;background:var(--amber-lt);color:var(--amber);border:1px solid #fcd34d}
-.alert.err{display:flex;background:var(--red-lt);color:var(--red);border:1px solid #fca5a5}
+/* ============================================================
+   ALERTS
+   ============================================================ */
+.alert{display:none;padding:9px 13px;border-radius:var(--r2);font-size:13px;margin-top:8px;font-weight:500;align-items:center;gap:7px}
+.alert.show{display:flex}
+.alert-ok{background:var(--green-lt);color:var(--green);border:1px solid #86efac}
+.alert-warn{background:var(--amber-lt);color:var(--amber);border:1px solid #fcd34d}
+.alert-err{background:var(--red-lt);color:var(--red);border:1px solid #fca5a5}
 
-/* TABLE SECTION */
-.tsec{background:#fff;border-radius:var(--r);box-shadow:var(--sh-sm);border:1px solid var(--g200);margin-bottom:14px;overflow:hidden}
-.tsec-hdr{padding:12px 15px;border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;background:var(--g50)}
+/* ============================================================
+   TABLES
+   ============================================================ */
+.tsec{background:var(--white);border-radius:var(--r);box-shadow:var(--sh1);border:1px solid var(--g200);margin-bottom:14px;overflow:hidden}
+.tsec-hdr{
+  padding:12px 15px;border-bottom:1px solid var(--g200);
+  display:flex;align-items:center;justify-content:space-between;background:var(--g50);
+  flex-wrap:wrap;gap:8px;
+}
 .tsec-hdr h3{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
-.tcnt{font-size:11px;color:#fff;background:var(--blue-mid);padding:2px 8px;border-radius:999px;font-weight:600}
+.tcnt{font-size:11px;color:var(--white);background:var(--blue2);padding:2px 8px;border-radius:999px;font-weight:600}
 .tcnt.gray{background:var(--g400)}
 .twrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:580px}
-th{padding:9px 11px;background:var(--g50);color:var(--g600);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;text-align:left;border-bottom:1px solid var(--g200);white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}
+th{
+  padding:9px 11px;background:var(--g50);color:var(--g600);
+  font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;
+  text-align:left;border-bottom:1px solid var(--g200);white-space:nowrap;
+}
 td{padding:9px 11px;border-bottom:1px solid var(--g100);color:var(--g800);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr.tfoot td{background:var(--g50);font-weight:600;border-top:1.5px solid var(--g200)}
 tr:hover:not(.tfoot) td{background:#f8faff}
+.badge-da{
+  display:inline-flex;align-items:center;gap:3px;
+  background:var(--green-lt);color:var(--green);
+  font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;
+}
+.badge-chua{
+  display:inline-flex;background:var(--g100);color:var(--g600);
+  font-size:10px;font-weight:500;padding:3px 8px;border-radius:999px;
+}
+.td-actions{display:flex;gap:4px;align-items:center}
 
-/* EDITABLE CELL */
-.ecell{position:relative}
-.ecell-val{cursor:text;min-width:60px;display:block;padding:3px 5px;border-radius:4px;transition:background .15s;border:1.5px solid transparent}
-.ecell-val:hover{background:var(--blue-lt)}
-.ecell-val.editing{background:#fff;border-color:var(--blue-acc);outline:none;box-shadow:0 0 0 2px rgba(59,130,246,.15)}
-.edit-icon{font-size:10px;opacity:0;margin-left:3px;transition:opacity .15s;color:var(--g400)}
-td:hover .edit-icon{opacity:1}
-
-/* BADGES */
-.badge-da{display:inline-flex;align-items:center;gap:3px;background:var(--green-lt);color:var(--green);font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px}
-.btn-rm{background:none;border:none;color:var(--g400);cursor:pointer;font-size:17px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:5px;transition:all .15s;line-height:1}
-.btn-rm:hover{background:var(--red-lt);color:var(--red)}
-.btn-edit{background:none;border:none;color:var(--g400);cursor:pointer;font-size:13px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;transition:all .15s}
-.btn-edit:hover{background:var(--blue-lt);color:var(--blue-mid)}
-
-/* EMPTY */
-.empty-state{text-align:center;padding:28px 16px;color:var(--g400)}
-.empty-state .ei{font-size:30px;margin-bottom:7px}
-.empty-state p{font-size:13px}
-
-/* SEARCH */
+/* ============================================================
+   SEARCH BOX
+   ============================================================ */
 .search-box{position:relative;margin-bottom:10px}
-.search-input{width:100%;padding:9px 13px 9px 34px;border:1.5px solid var(--g200);border-radius:var(--r-sm);font-size:13px;font-family:var(--font);background:var(--g50);outline:none;color:var(--g800);transition:border-color .2s}
-.search-input:focus{border-color:var(--blue-acc);background:#fff}
-.sicon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:14px}
+.search-input{
+  width:100%;padding:9px 13px 9px 34px;border:1.5px solid var(--g200);
+  border-radius:var(--r2);font-size:13px;font-family:var(--font);
+  background:var(--g50);outline:none;color:var(--g800);transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--blue3);background:var(--white)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:14px;pointer-events:none}
 
-/* EDIT MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+/* ============================================================
+   UPLOAD ZONE
+   ============================================================ */
+.upload-zone{
+  border:2px dashed var(--g200);border-radius:var(--r2);padding:24px;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;
+  margin-bottom:12px;
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue3);background:var(--blue-lt)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:28px;margin-bottom:6px}
+.upload-text{font-size:13px;color:var(--g600)}
+.upload-hint{font-size:11px;color:var(--g400);margin-top:3px}
+.excel-preview{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r2);padding:12px;margin-bottom:10px;display:none}
+.ep-hdr{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ep-wrap{overflow-x:auto}
+.ep-table{width:100%;font-size:11px;border-collapse:collapse;min-width:360px}
+.ep-table th{padding:6px 8px;background:var(--g100);border-bottom:1px solid var(--g200);font-weight:600;font-size:10px;color:var(--g600);text-align:left;white-space:nowrap}
+.ep-table td{padding:5px 8px;border-bottom:1px solid var(--g100);color:var(--g800)}
+.badge-new{display:inline-block;background:var(--green-lt);color:var(--green);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px}
+.badge-dup{display:inline-block;background:var(--amber-lt);color:var(--amber);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px}
+.badge-done{display:inline-block;background:var(--g100);color:var(--g600);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px}
+.badge-err{display:inline-block;background:var(--red-lt);color:var(--red);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px}
+.import-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+/* ============================================================
+   GUEST BANNER
+   ============================================================ */
+.guest-banner{
+  background:linear-gradient(90deg,var(--amber-lt),#fff9e6);
+  border:1.5px solid #fcd34d;border-radius:var(--r2);
+  padding:10px 14px;font-size:12px;color:var(--amber);
+  font-weight:500;margin-bottom:14px;display:none;align-items:center;gap:8px;
+}
+.guest-banner.show{display:flex}
+
+/* ============================================================
+   EDIT MODAL
+   ============================================================ */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
 .modal-bg.open{opacity:1;pointer-events:auto}
-.modal{background:#fff;border-radius:var(--r);box-shadow:var(--sh-lg);width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
-.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--g200);display:flex;justify-content:space-between;align-items:center}
-.modal-hdr h3{font-size:15px;font-weight:600}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--g600);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .15s}
+.modal{
+  background:var(--white);border-radius:var(--r);box-shadow:var(--sh3);
+  width:100%;max-width:540px;max-height:90vh;overflow-y:auto;
+}
+.modal-hdr{
+  padding:16px 20px;border-bottom:1px solid var(--g200);
+  display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;background:var(--white);z-index:1;
+}
+.modal-hdr h3{font-size:15px;font-weight:700}
+.modal-close{
+  background:none;border:none;font-size:20px;cursor:pointer;
+  color:var(--g600);width:32px;height:32px;display:flex;align-items:center;
+  justify-content:center;border-radius:6px;transition:background .15s;
+}
 .modal-close:hover{background:var(--g100)}
 .modal-body{padding:20px}
 .form-row{margin-bottom:14px}
 .form-label{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px;display:block}
-.form-input{width:100%;padding:10px 13px;border:1.5px solid var(--g200);border-radius:var(--r-sm);font-size:13px;font-family:var(--font);color:var(--g800);background:var(--g50);outline:none;transition:border-color .2s}
-.form-input:focus{border-color:var(--blue-acc);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-input{
+  width:100%;padding:10px 13px;border:1.5px solid var(--g200);
+  border-radius:var(--r2);font-size:13px;font-family:var(--font);
+  color:var(--g800);background:var(--g50);outline:none;transition:border-color .2s;
+}
+.form-input:focus{border-color:var(--blue3);background:var(--white);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-input:disabled{opacity:.55;cursor:not-allowed;background:var(--g100)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal-footer{padding:14px 20px;border-top:1px solid var(--g200);display:flex;justify-content:flex-end;gap:8px}
-.btn-save{padding:10px 20px;background:var(--blue-mid);color:#fff;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:background .2s}
-.btn-save:hover{background:var(--blue)}
-.btn-cancel{padding:10px 16px;background:#fff;color:var(--g600);border:1.5px solid var(--g200);border-radius:var(--r-sm);font-size:13px;font-family:var(--font);cursor:pointer;transition:all .2s}
-.btn-cancel:hover{border-color:var(--g400)}
+@media(max-width:420px){.form-grid{grid-template-columns:1fr}}
+.modal-footer{
+  padding:14px 20px;border-top:1px solid var(--g200);
+  display:flex;justify-content:flex-end;gap:8px;
+  position:sticky;bottom:0;background:var(--white);
+}
+.modal-guest-note{
+  background:var(--amber-lt);border:1px solid #fcd34d;border-radius:var(--r2);
+  padding:9px 13px;font-size:12px;color:var(--amber);
+  display:none;margin-bottom:14px;font-weight:500;
+}
+.modal-guest-note.show{display:block}
+.total-preview{
+  background:var(--g50);border:1px solid var(--g200);border-radius:var(--r2);
+  padding:10px 14px;display:flex;justify-content:space-between;
+  align-items:center;font-size:13px;margin-top:4px;
+}
+.total-preview-val{font-weight:700;color:var(--blue2);font-size:15px}
 
-/* REPORT */
-.report-card{background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g200);margin-bottom:14px}
-.report-card h3{font-size:14px;font-weight:600;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100);display:flex;align-items:center;gap:7px}
+/* ============================================================
+   REPORT
+   ============================================================ */
+.report-card{background:var(--white);border-radius:var(--r);padding:18px;box-shadow:var(--sh1);border:1px solid var(--g200);margin-bottom:14px}
+.report-card h3{font-size:14px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100);display:flex;align-items:center;gap:7px}
 .rrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--g100);font-size:13px}
 .rrow:last-child{border-bottom:none}
-.rlbl{color:var(--g600)}.rval{font-weight:600}
-.rval.blue{color:var(--blue-mid)}.rval.green{color:var(--green)}
-.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ci{border-radius:var(--r-sm);padding:14px;text-align:center}
+.rlbl{color:var(--g600)}
+.rval{font-weight:600}
+.rval.blue{color:var(--blue2)}.rval.green{color:var(--green)}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0}
+.ci{border-radius:var(--r2);padding:16px;text-align:center}
 .ci.blue{background:var(--blue-lt)}.ci.gray{background:var(--g100)}
-.ci-pct{font-size:26px;font-weight:700;line-height:1;margin-bottom:3px}
-.ci.blue .ci-pct{color:var(--blue-mid)}.ci.gray .ci-pct{color:var(--g600)}
-.ci-label{font-size:10px;font-weight:600;color:var(--g600)}
+.ci-pct{font-size:28px;font-weight:800;line-height:1;margin-bottom:3px}
+.ci.blue .ci-pct{color:var(--blue2)}.ci.gray .ci-pct{color:var(--g600)}
+.ci-label{font-size:10px;font-weight:600;color:var(--g600);text-transform:uppercase;letter-spacing:.05em}
 .ci-count{font-size:11px;color:var(--g400);margin-top:2px}
 
-/* SAVE TOAST */
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--g800);color:#fff;font-size:12px;padding:7px 16px;border-radius:999px;box-shadow:var(--sh-lg);opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;white-space:nowrap}
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  background:var(--g800);color:var(--white);font-size:12px;
+  padding:8px 18px;border-radius:999px;box-shadow:var(--sh3);
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:500;white-space:nowrap;
+}
 .toast.show{opacity:1}
 
-/* UPLOAD IMPORT TABLE */
-.import-actions{display:flex;gap:8px;margin-top:10px}
-.badge-new{display:inline-block;background:var(--green-lt);color:var(--green);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px}
-.badge-dup{display:inline-block;background:var(--amber-lt);color:var(--amber);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px}
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state{text-align:center;padding:32px 16px;color:var(--g400)}
+.empty-state .ei{font-size:32px;margin-bottom:8px}
+.empty-state p{font-size:13px}
 
+/* ============================================================
+   ADMIN DATA TAB
+   ============================================================ */
+.admin-section{background:var(--white);border-radius:var(--r);padding:16px;box-shadow:var(--sh1);border:1px solid var(--g200);margin-bottom:14px}
+.admin-section h3{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--g800);display:flex;align-items:center;gap:7px}
+.danger-zone{border-color:#fca5a5;background:var(--red-lt)}
+.danger-zone h3{color:var(--red)}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media(max-width:480px){
   .mval{font-size:18px}
   .main{padding:12px 10px 80px}
   .tab-btn{padding:11px 12px;font-size:12px}
-  .btn-add{padding:10px 12px}
+  .header-inner{padding:10px 14px}
   .form-grid{grid-template-columns:1fr}
+  .igrid{grid-template-columns:1fr}
 }
-
-/* LOGIN SCREEN */
-.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c 0%,#2563a8 100%);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-box{background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
-.login-logo{text-align:center;margin-bottom:24px}
-.login-logo .lico{font-size:40px;display:block;margin-bottom:8px}
-.login-logo h2{font-size:18px;font-weight:700;color:var(--blue);line-height:1.2}
-.login-logo p{font-size:11px;color:var(--g400);margin-top:4px}
-.login-field{margin-bottom:14px}
-.login-field label{display:block;font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px}
-.login-field input{width:100%;padding:11px 14px;border:1.5px solid var(--g200);border-radius:var(--r-sm);font-size:14px;font-family:var(--font);color:var(--g800);background:var(--g50);outline:none;transition:border-color .2s}
-.login-field input:focus{border-color:var(--blue-acc);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-.login-btn{width:100%;padding:13px;background:var(--blue-mid);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;transition:background .2s;margin-top:6px}
-.login-btn:hover{background:var(--blue)}
-.login-btn:active{transform:scale(.98)}
-.login-err{background:var(--red-lt);color:var(--red);border:1px solid #fca5a5;border-radius:var(--r-sm);padding:9px 13px;font-size:12px;font-weight:500;margin-bottom:12px;display:none}
-.login-err.show{display:block}
-.login-hint{text-align:center;font-size:12px;color:var(--g600);margin-top:16px;line-height:1.8;padding:10px 12px;background:var(--g50);border-radius:var(--r-sm);border:1px solid var(--g200)}
-
-/* USER BADGE in header */
-.user-badge{display:flex;align-items:center;gap:8px;margin-left:auto}
-.user-pill{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;display:flex;align-items:center;gap:5px}
-.user-pill.guest{background:rgba(251,191,36,.25);border-color:rgba(251,191,36,.4)}
-.logout-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--font);transition:background .2s;white-space:nowrap}
-.logout-btn:hover{background:rgba(255,255,255,.25)}
-
-/* GUEST LOCK overlay on write elements */
-.guest-lock{position:relative;pointer-events:none;opacity:.45;user-select:none}
-.guest-banner{background:linear-gradient(90deg,var(--amber-lt),#fff9e6);border:1.5px solid #fcd34d;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--amber);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN OVERLAY -->
-<div class="login-overlay" id="loginOverlay">
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
-      <span class="lico">🏛️</span>
-      <h2>GPMB — Theo dõi Bồi thường</h2>
-      <p>Dự án Khu dân cư xã Phú Phong, Huyện Hương Khê</p>
+      <span class="login-logo-icon">🏛️</span>
+      <h2>GPMB — Quản lý Bồi thường</h2>
+      <p>Dự án Khu dân cư xã Phú Phong<br>Huyện Hương Khê, Tỉnh Hà Tĩnh</p>
     </div>
     <div class="login-err" id="loginErr">Tên đăng nhập hoặc mật khẩu không đúng</div>
-    <div class="login-field">
+    <div class="form-field">
       <label>Tên đăng nhập</label>
-      <input type="text" id="loginUser" placeholder="admin hoặc guest" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+      <input type="text" id="loginUser" placeholder="admin hoặc guest" autocomplete="username">
     </div>
-    <div class="login-field">
+    <div class="form-field">
       <label>Mật khẩu</label>
-      <input type="password" id="loginPass" placeholder="Nhập mật khẩu..." autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="loginPass" placeholder="Nhập mật khẩu..." autocomplete="current-password">
     </div>
-    <button class="login-btn" onclick="doLogin()">Đăng nhập</button>
+    <button class="btn-login" id="btnLogin">Đăng nhập</button>
     <div class="login-hint">
-      <strong style="color:var(--blue)">Admin</strong>: toàn quyền chỉnh sửa &nbsp;·&nbsp; <strong style="color:var(--g600)">Guest</strong>: chỉ xem
+      <strong>Admin</strong> — toàn quyền &nbsp;·&nbsp; <strong>Guest</strong> — chỉ xem
     </div>
   </div>
 </div>
 
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
 <header class="app-header">
   <div class="header-inner">
     <div class="header-icon">🏛️</div>
     <div class="header-text">
-      <h1>GPMB — Theo dõi Bồi thường</h1>
+      <h1>GPMB — Quản lý Bồi thường</h1>
       <p>Dự án Khu dân cư xã Phú Phong, Huyện Hương Khê, Tỉnh Hà Tĩnh</p>
     </div>
-    <div class="user-badge">
-      <div class="user-pill" id="userPill">👤 —</div>
-      <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
+    <div class="header-right">
+      <div class="user-pill" id="userPill">👤</div>
+      <button class="btn-logout" id="btnLogout">Đăng xuất</button>
     </div>
   </div>
-  <div id="syncBar" style="background:rgba(0,0,0,.25);padding:4px 20px;font-size:11px;display:flex;align-items:center;gap:6px">
-    <span id="hBadge" style="color:rgba(255,255,255,.8);font-weight:600">0 / 93 hộ</span>
-    <span id="syncStatus" style="color:rgba(255,255,255,.65);transition:opacity .5s;margin-left:8px"></span>
-    <span id="cloudBadge" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)"></span>
+  <div class="sync-bar">
+    <div class="sync-bar-inner">
+      <span id="hBadge">0 / 93 hộ</span>
+      <span id="syncStatus"></span>
+      <span id="cloudBadge"></span>
+    </div>
   </div>
 </header>
 
 <nav class="nav-tabs">
   <div class="nav-inner">
-    <button class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Tổng quan</button>
-    <button class="tab-btn" onclick="switchTab('update',this)">✏️ Cập nhật</button>
-    <button class="tab-btn" onclick="switchTab('received',this)">✅ Đã nhận</button>
-    <button class="tab-btn" onclick="switchTab('pending',this)">⏳ Chưa nhận</button>
-    <button class="tab-btn" onclick="switchTab('report',this)">📋 Báo cáo</button>
+    <button class="tab-btn active" data-tab="dashboard">📊 Tổng quan</button>
+    <button class="tab-btn" data-tab="update">✏️ Cập nhật</button>
+    <button class="tab-btn" data-tab="received">✅ Đã nhận</button>
+    <button class="tab-btn" data-tab="pending">⏳ Chưa nhận</button>
+    <button class="tab-btn" data-tab="report">📋 Báo cáo</button>
+    <button class="tab-btn admin-only" data-tab="admin">⚙️ Quản trị</button>
   </div>
 </nav>
 
 <main class="main">
-  <!-- DASHBOARD -->
+
+  <!-- ========== DASHBOARD ========== -->
   <div class="tab-pane active" id="tab-dashboard">
-    <!-- Cloud config banner (ẩn khi đã cấu hình) -->
-    <div id="cloudSetupBanner" class="panel" style="border:1.5px solid #fcd34d;background:var(--amber-lt);display:none">
-      <h3 style="color:var(--amber)">☁️ Cấu hình lưu trữ Cloud</h3>
-      <p style="font-size:12px;color:var(--g600);margin-bottom:12px;line-height:1.7">
-        Hiện tại dữ liệu chỉ lưu trên trình duyệt này. Để đồng bộ giữa nhiều thiết bị:<br>
-        1. Vào <a href="https://jsonbin.io" target="_blank" style="color:var(--blue-mid)">jsonbin.io</a> → Đăng ký miễn phí<br>
-        2. Vào <strong>API Keys</strong> → copy <strong>Master Key</strong><br>
-        3. Dán vào ô bên dưới và nhấn Lưu
-      </p>
-      <div style="display:flex;gap:8px">
-        <input class="ifield" id="apiKeyInput" type="password" placeholder="Dán Master Key từ jsonbin.io vào đây..." style="font-family:monospace;font-size:12px">
-        <button class="btn-add" onclick="saveApiKey()">💾 Lưu & Kết nối</button>
-      </div>
-    </div>
     <div class="metrics-grid" id="metricsGrid"></div>
     <div class="prog-box">
       <div class="prog-hdr">
         <span class="prog-title">Tiến độ nhận tiền bồi thường</span>
-        <span class="prog-pct" id="pctHo">0%</span>
+        <span class="prog-pct" id="pctText">0%</span>
       </div>
       <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
       <div class="prog-legend">
-        <span><span class="ldot" style="background:#2563a8"></span>Đã nhận: <strong id="legDa">0 hộ</strong></span>
-        <span><span class="ldot" style="background:#e2e8f0"></span>Chưa nhận: <strong id="legChua">93 hộ</strong></span>
+        <span><span class="ldot" style="background:var(--blue2)"></span>Đã nhận: <strong id="legDa">0 hộ</strong></span>
+        <span><span class="ldot" style="background:var(--g200)"></span>Chưa nhận: <strong id="legChua">0 hộ</strong></span>
       </div>
     </div>
     <div class="charts-row">
-      <div class="ch-card">
-        <div class="ch-label">Tỷ lệ số hộ</div>
-        <div class="ch-wrap"><canvas id="pieHo" role="img" aria-label="Tỷ lệ số hộ"></canvas></div>
-      </div>
-      <div class="ch-card">
-        <div class="ch-label">Tỷ lệ diện tích</div>
-        <div class="ch-wrap"><canvas id="pieDt" role="img" aria-label="Tỷ lệ diện tích"></canvas></div>
-      </div>
+      <div class="ch-card"><div class="ch-lbl">Tỷ lệ số hộ</div><div class="ch-wrap"><canvas id="pieHo"></canvas></div></div>
+      <div class="ch-card"><div class="ch-lbl">Tỷ lệ diện tích</div><div class="ch-wrap"><canvas id="pieDt"></canvas></div></div>
     </div>
   </div>
 
-  <!-- UPDATE -->
+  <!-- ========== UPDATE ========== -->
   <div class="tab-pane" id="tab-update">
-    <div class="guest-banner" id="guestBannerUpdate" style="display:none">🔒 Bạn đang đăng nhập với quyền Guest — chỉ xem, không thể chỉnh sửa</div>
-    <!-- Upload Excel - chỉ cần tên, lấy số liệu từ danh sách chưa nhận -->
-    <div class="panel guest-hide">
-      <h3>📂 Upload danh sách đã nhận từ file Excel</h3>
-      <p style="font-size:12px;color:var(--g600);margin-bottom:12px;line-height:1.6">
-        Chỉ cần file có <strong>cột tên hộ</strong>. App sẽ tự tra danh sách chưa nhận, lấy số liệu và đánh dấu <em>Đã nhận</em>.<br>
-        Tên không khớp sẽ hiển thị để xem xét.
-      </p>
-      <div class="upload-zone" id="uploadZone">
-        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(event)">
+    <div class="guest-banner" id="guestBannerUpdate">🔒 Bạn đang đăng nhập với quyền Guest — chỉ xem</div>
+
+    <div class="panel admin-only">
+      <h3>📂 Upload danh sách từ file Excel</h3>
+      <div class="panel-desc">Chỉ cần cột <strong>Họ và tên</strong>. App tự tra danh sách chưa nhận để lấy số liệu và đánh dấu Đã nhận.</div>
+      <div class="upload-zone" id="uzUpdate">
+        <input type="file" id="fileUpdate" accept=".xlsx,.xls,.csv">
         <div class="upload-icon">📋</div>
         <div class="upload-text">Kéo thả file hoặc nhấn để chọn</div>
-        <div class="upload-hint">Hỗ trợ .xlsx, .xls, .csv · Chỉ cần cột <strong>Họ và tên</strong> (hoặc Tên)</div>
+        <div class="upload-hint">Hỗ trợ .xlsx .xls .csv · Chỉ cần cột tên hộ</div>
       </div>
-      <div class="excel-preview" id="excelPreview">
-        <div class="ep-title" id="epTitle"></div>
-        <div class="ep-table-wrap"><table class="ep-table" id="epTable"></table></div>
-        <div class="import-actions" id="importActions">
-          <button class="btn-add" onclick="importAllMatched()">✅ Đánh dấu tất cả đã khớp</button>
-          <button class="btn-ghost" onclick="clearPreview()">✕ Huỷ</button>
+      <div class="excel-preview" id="epUpdate">
+        <div class="ep-hdr" id="epUpdateHdr"></div>
+        <div class="ep-wrap"><table class="ep-table" id="epUpdateTable"></table></div>
+        <div class="import-actions">
+          <button class="btn btn-primary" onclick="importUpdateConfirm()">✅ Đánh dấu đã chọn</button>
+          <button class="btn btn-ghost" onclick="clearEpUpdate()">✕ Huỷ</button>
         </div>
       </div>
     </div>
 
-    <!-- Manual input -->
-    <div class="panel guest-hide">
+    <div class="panel admin-only">
       <h3>✏️ Nhập thủ công hộ đã nhận tiền</h3>
-      <div class="input-row">
-        <input class="ifield" id="nameInput" type="text" placeholder="Nhập họ tên hộ..." autocomplete="off" oninput="onInput()" onkeydown="onKeyDown(event)">
-        <button class="btn-add" onclick="addReceived()">+ Thêm</button>
+      <div class="suggest-wrap">
+        <div class="irow">
+          <input class="ifield" id="nameInput" type="text" placeholder="Gõ tên hộ để tìm kiếm..." autocomplete="off">
+          <button class="btn btn-primary" id="btnAddReceived">+ Thêm</button>
+        </div>
+        <div class="suggest-box" id="suggestBox"></div>
       </div>
-      <div class="suggest-box" id="suggestBox"></div>
-      <div class="alert" id="alertMsg"></div>
+      <div class="alert" id="alertUpdate"></div>
     </div>
 
-    <!-- Recent table -->
     <div class="tsec">
       <div class="tsec-hdr">
-        <h3>📋 Danh sách đã ghi nhận</h3>
-        <span class="tcnt" id="recCnt">0</span>
+        <h3>📋 Hộ đã ghi nhận</h3>
+        <span class="tcnt" id="cntUpdate">0</span>
       </div>
-      <div class="twrap">
-        <table>
-          <thead><tr><th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th><th>Chi bổ sung</th><th>Tổng</th><th>Sửa</th><th></th></tr></thead>
-          <tbody id="recentTable"></tbody>
-        </table>
-      </div>
+      <div class="twrap"><table>
+        <thead><tr id="thUpdate"></tr></thead>
+        <tbody id="tbUpdate"></tbody>
+      </table></div>
     </div>
   </div>
 
-  <!-- RECEIVED -->
+  <!-- ========== RECEIVED ========== -->
   <div class="tab-pane" id="tab-received">
     <div class="search-box">
-      <span class="sicon">🔍</span>
-      <input class="search-input" id="searchRec" placeholder="Tìm hộ đã nhận..." oninput="renderReceivedTable()">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchRec" placeholder="Tìm hộ đã nhận...">
     </div>
     <div class="tsec">
       <div class="tsec-hdr">
         <h3>✅ Hộ đã nhận tiền</h3>
-        <span class="tcnt" id="recvCount">0</span>
+        <span class="tcnt" id="cntRec">0</span>
       </div>
-      <div class="twrap">
-        <table>
-          <thead><tr><th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th><th>Chi bổ sung</th><th>Tổng</th><th>Trạng thái</th><th>Sửa</th><th></th></tr></thead>
-          <tbody id="receivedTable"></tbody>
-        </table>
-      </div>
+      <div class="twrap"><table>
+        <thead><tr id="thRec"></tr></thead>
+        <tbody id="tbRec"></tbody>
+      </table></div>
     </div>
   </div>
 
-  <!-- PENDING -->
+  <!-- ========== PENDING ========== -->
   <div class="tab-pane" id="tab-pending">
-    <div class="guest-banner" id="guestBannerPending" style="display:none">🔒 Bạn đang đăng nhập với quyền Guest — chỉ xem, không thể chỉnh sửa</div>
+    <div class="guest-banner" id="guestBannerPending">🔒 Bạn đang đăng nhập với quyền Guest — chỉ xem</div>
 
-    <!-- Upload Excel vào danh sách chưa nhận -->
-    <div class="panel guest-hide">
+    <div class="panel admin-only">
       <h3>📂 Upload / Thêm hộ vào danh sách</h3>
-      <div class="upload-zone" id="uploadZonePend">
-        <input type="file" id="fileInputPend" accept=".xlsx,.xls,.csv" onchange="handleFileUploadPend(event)">
+      <div class="panel-desc">Upload file Excel đầy đủ thông tin để thêm hoặc cập nhật danh sách chưa nhận.</div>
+      <div class="upload-zone" id="uzPending">
+        <input type="file" id="filePending" accept=".xlsx,.xls,.csv">
         <div class="upload-icon">📊</div>
         <div class="upload-text">Kéo thả file hoặc nhấn để chọn</div>
-        <div class="upload-hint">Hỗ trợ .xlsx, .xls, .csv — Cột cần có: Họ và tên, Địa chỉ, Diện tích, Bồi thường, 20%, Chi bổ sung</div>
+        <div class="upload-hint">Các cột: Họ tên · Địa chỉ · Số thửa · Tờ bản đồ · Diện tích · Bồi thường · 20% · Chi bổ sung</div>
       </div>
-      <div class="excel-preview" id="excelPreviewPend">
-        <div class="ep-title" id="epTitlePend"></div>
-        <div class="ep-table-wrap"><table class="ep-table" id="epTablePend"></table></div>
+      <div class="excel-preview" id="epPending">
+        <div class="ep-hdr" id="epPendingHdr"></div>
+        <div class="ep-wrap"><table class="ep-table" id="epPendingTable"></table></div>
         <div class="import-actions">
-          <button class="btn-add" onclick="importAllPend()">✅ Nhập tất cả hộ mới</button>
-          <button class="btn-ghost" onclick="clearPreviewPend()">✕ Huỷ</button>
+          <button class="btn btn-primary" onclick="importPendingConfirm()">✅ Nhập tất cả</button>
+          <button class="btn btn-ghost" onclick="clearEpPending()">✕ Huỷ</button>
         </div>
       </div>
     </div>
 
-    <!-- Thêm hộ mới thủ công -->
-    <div class="panel guest-hide">
+    <div class="panel admin-only">
       <h3>➕ Thêm hộ mới thủ công</h3>
-      <div class="pend-add-grid">
-        <input class="ifield" id="pendName" type="text" placeholder="Họ và tên *" autocomplete="off">
-        <input class="ifield" id="pendAddr" type="text" placeholder="Địa chỉ (Thôn...)">
-        <input class="ifield" id="pendDt" type="number" step="0.01" placeholder="Diện tích (m²)">
-        <input class="ifield" id="pendBt" type="number" placeholder="Tiền bồi thường">
-        <input class="ifield" id="pendP20" type="number" placeholder="20% tăng thêm">
-        <input class="ifield" id="pendCbs" type="number" placeholder="Chi bổ sung thêm">
+      <div class="igrid cols3" id="pendAddGrid">
+        <input class="ifield" id="paName" placeholder="Họ và tên *">
+        <input class="ifield" id="paAddr" placeholder="Địa chỉ">
+        <input class="ifield" id="paThua" placeholder="Số thửa">
+        <input class="ifield" id="paBanDo" placeholder="Tờ bản đồ">
+        <input class="ifield" id="paDt" type="number" placeholder="Diện tích (m²)">
+        <input class="ifield" id="paBt" type="number" placeholder="Bồi thường">
+        <input class="ifield" id="paP20" type="number" placeholder="20% tăng thêm">
+        <input class="ifield" id="paCbs" type="number" placeholder="Chi bổ sung">
+        <input class="ifield" id="paNote" placeholder="Ghi chú">
       </div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn-add" onclick="addNewPending()">➕ Thêm vào danh sách</button>
-      </div>
-      <div class="alert" id="alertPend"></div>
+      <button class="btn btn-primary" id="btnAddPending">➕ Thêm vào danh sách</button>
+      <div class="alert" id="alertPending"></div>
     </div>
 
-    <!-- Table chưa nhận -->
     <div class="search-box">
-      <span class="sicon">🔍</span>
-      <input class="search-input" id="searchPend" placeholder="Tìm hộ chưa nhận..." oninput="renderPendingTable()">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchPend" placeholder="Tìm hộ chưa nhận...">
     </div>
     <div class="tsec">
       <div class="tsec-hdr">
         <h3>⏳ Hộ chưa nhận tiền</h3>
-        <span class="tcnt gray" id="pendCount">93</span>
+        <span class="tcnt gray" id="cntPend">0</span>
       </div>
-      <div class="twrap">
-        <table>
-          <thead><tr><th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th><th>Chi bổ sung</th><th>Tổng</th><th>Đánh dấu</th><th>Sửa</th></tr></thead>
-          <tbody id="pendingTable"></tbody>
-        </table>
-      </div>
+      <div class="twrap"><table>
+        <thead><tr id="thPend"></tr></thead>
+        <tbody id="tbPend"></tbody>
+      </table></div>
     </div>
   </div>
 
-  <!-- REPORT -->
+  <!-- ========== REPORT ========== -->
   <div class="tab-pane" id="tab-report">
     <div class="report-card">
-      <h3>📊 So sánh tỷ lệ</h3>
+      <h3>📊 So sánh tiến độ</h3>
       <div class="compare-grid" id="compareGrid"></div>
     </div>
     <div class="report-card"><h3>✅ Tổng hợp đã nhận</h3><div id="rptDa"></div></div>
     <div class="report-card"><h3>⏳ Tổng hợp chưa nhận</h3><div id="rptChua"></div></div>
-    <div class="report-card"><h3>📋 Toàn bộ dự án</h3><div id="rptAll"></div></div>
+    <div class="report-card"><h3>📋 Toàn dự án</h3><div id="rptAll"></div></div>
+    <div class="report-card">
+      <h3>📤 Xuất dữ liệu</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-success" onclick="exportExcel('da_nhan')">⬇️ Xuất Đã nhận</button>
+        <button class="btn btn-success" onclick="exportExcel('chua_nhan')">⬇️ Xuất Chưa nhận</button>
+        <button class="btn btn-primary" onclick="exportExcel('all')">⬇️ Xuất tất cả</button>
+        <button class="btn btn-ghost" onclick="window.print()">🖨️ In báo cáo</button>
+      </div>
+    </div>
   </div>
+
+  <!-- ========== ADMIN ========== -->
+  <div class="tab-pane" id="tab-admin">
+    <div class="admin-section">
+      <h3>☁️ Trạng thái Cloud</h3>
+      <div style="font-size:13px;color:var(--g600);margin-bottom:12px" id="cloudInfo"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="loadCloudState()">🔄 Tải lại từ Cloud</button>
+        <button class="btn btn-success" onclick="saveState(true)">☁️ Lưu lên Cloud ngay</button>
+      </div>
+    </div>
+    <div class="admin-section">
+      <h3>📊 Thông tin dữ liệu</h3>
+      <div id="adminDataInfo" style="font-size:13px;color:var(--g600)"></div>
+    </div>
+    <div class="admin-section danger-zone">
+      <h3>⚠️ Vùng nguy hiểm</h3>
+      <p style="font-size:13px;color:var(--red);margin-bottom:12px">Các thao tác dưới đây không thể hoàn tác.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger" onclick="resetToBase()">🔄 Reset về dữ liệu gốc</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
-<!-- EDIT MODAL -->
+<!-- ============================================================
+     EDIT MODAL
+     ============================================================ -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-hdr">
       <h3 id="modalTitle">Chỉnh sửa thông tin hộ</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" id="btnModalClose">✕</button>
     </div>
     <div class="modal-body">
+      <div class="modal-guest-note" id="modalGuestNote">🔒 Guest chỉ xem — không thể chỉnh sửa</div>
       <input type="hidden" id="editId">
-      <div id="guestModalNote" style="display:none;background:var(--amber-lt);border:1px solid #fcd34d;border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--amber);margin-bottom:12px">
-        🔒 Guest chỉ xem — không thể chỉnh sửa
-      </div>
       <div class="form-row">
         <label class="form-label">Họ và tên</label>
-        <input class="form-input" id="editName" type="text" oninput="autoSaveEdit()">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Địa chỉ</label>
-        <input class="form-input" id="editAddr" type="text" oninput="autoSaveEdit()">
+        <input class="form-input" id="editName" type="text">
       </div>
       <div class="form-grid">
         <div class="form-row">
+          <label class="form-label">Địa chỉ</label>
+          <input class="form-input" id="editAddr" type="text">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Số thửa</label>
+          <input class="form-input" id="editThua" type="text">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Tờ bản đồ</label>
+          <input class="form-input" id="editBanDo" type="text">
+        </div>
+        <div class="form-row">
           <label class="form-label">Diện tích (m²)</label>
-          <input class="form-input" id="editDt" type="number" step="0.01" oninput="autoSaveEdit()">
+          <input class="form-input" id="editDt" type="number" step="0.01">
         </div>
         <div class="form-row">
           <label class="form-label">Bồi thường (đồng)</label>
-          <input class="form-input" id="editBt" type="number" oninput="autoSaveEdit()">
+          <input class="form-input" id="editBt" type="number">
         </div>
         <div class="form-row">
           <label class="form-label">20% tăng thêm (đồng)</label>
-          <input class="form-input" id="editP20" type="number" oninput="autoSaveEdit()">
+          <input class="form-input" id="editP20" type="number">
+        </div>
+        <div class="form-row admin-only" id="editCbsRow">
+          <label class="form-label">Chi bổ sung thêm (đồng)</label>
+          <input class="form-input" id="editCbs" type="number">
         </div>
         <div class="form-row">
-          <label class="form-label">Chi bổ sung thêm (đồng)</label>
-          <input class="form-input" id="editCbs" type="number" placeholder="0" oninput="autoSaveEdit()">
+          <label class="form-label">Ngày nhận</label>
+          <input class="form-input" id="editDate" type="date">
         </div>
       </div>
       <div class="form-row">
-        <label class="form-label">Trạng thái nhận tiền</label>
-        <select class="form-input" id="editStatus" onchange="autoSaveEdit()">
-          <option value="0">⏳ Chưa nhận</option>
-          <option value="1">✅ Đã nhận</option>
+        <label class="form-label">Ghi chú</label>
+        <input class="form-input" id="editNote" type="text">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Trạng thái</label>
+        <select class="form-input" id="editStatus">
+          <option value="chua_nhan">⏳ Chưa nhận</option>
+          <option value="da_nhan">✅ Đã nhận</option>
         </select>
       </div>
-      <!-- Live total preview -->
-      <div id="editTotalPreview" style="margin-top:12px;background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
-        <span style="color:var(--g600)">Tổng giá trị:</span>
-        <span id="editTotalVal" style="font-weight:700;color:var(--blue-mid);font-size:15px">0</span>
+      <div class="total-preview">
+        <span style="color:var(--g600);font-size:13px">Tổng giá trị:</span>
+        <span class="total-preview-val" id="editTotalVal">0 đồng</span>
       </div>
-      <div id="autoSaveStatus" style="text-align:right;font-size:11px;color:var(--g400);margin-top:6px;height:16px"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Đóng</button>
-      <button class="btn-save" onclick="saveEdit()">💾 Lưu & Đóng</button>
+      <button class="btn btn-ghost" id="btnModalCancel">Huỷ</button>
+      <button class="btn btn-primary" id="btnModalSave">💾 Lưu</button>
+      <button class="btn btn-success" id="btnModalSaveClose">💾 Lưu & Đóng</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
 <script>
-/* ===== BASE DATA ===== */
-const BASE=[
-  {id:1,name:"Trương Thị Vinh (Ngô Quang Hùng)",addr:"Thôn 1",dt:916.9,bt:174375000,p20:34875000,cbs:0,total:209250000},
-  {id:2,name:"Lê Danh Lượng (vợ Lê Thị Thu)",addr:"Thôn 1",dt:1091.5,bt:196070000,p20:39214000,cbs:0,total:235284000},
-  {id:3,name:"Nguyễn Kim Hạp",addr:"Thôn 1",dt:1299.5,bt:238971000,p20:47794200,cbs:0,total:286765200},
-  {id:4,name:"Nguyễn Kim Minh (Đinh Thị Chung)",addr:"Thôn 1",dt:763.3,bt:150274000,p20:30054800,cbs:0,total:180328800},
-  {id:5,name:"Lê Vạn Thư (vợ Tăng Thị Anh)",addr:"Thôn 1",dt:1152.6,bt:216054000,p20:43210800,cbs:0,total:259264800},
-  {id:6,name:"Nguyễn Xuân Đồng (vợ Lê Thị Hài)",addr:"Thôn 1",dt:393.8,bt:81876000,p20:16375200,cbs:0,total:98251200},
-  {id:7,name:"Lê Đình Thọ",addr:"Thôn 1",dt:1141.7,bt:217187000,p20:43437400,cbs:0,total:260624400},
-  {id:8,name:"Nguyễn Thị Lục (con Lê Thanh Tú)",addr:"Thôn 1",dt:579.5,bt:105533000,p20:21106600,cbs:0,total:126639600},
-  {id:9,name:"Nguyễn Kim Đương (vợ Nguyễn Thị Trường Thành)",addr:"Thôn 1",dt:1602.9,bt:292621000,p20:58524200,cbs:0,total:351145200},
-  {id:10,name:"Nguyễn Hữu Tính",addr:"Thôn 1",dt:1218.5,bt:218527000,p20:43705400,cbs:0,total:262232400},
-  {id:11,name:"Lê Thị Thảo (chồng Lê Vạn Hiền)",addr:"Thôn 1",dt:269.6,bt:55323000,p20:11064600,cbs:0,total:66387600},
-  {id:12,name:"Nguyễn Thị Lam",addr:"Thôn 1",dt:428.7,bt:84987000,p20:16997400,cbs:0,total:101984400},
-  {id:13,name:"Nguyễn Kim Minh (Nguyễn Thị Hương)",addr:"Thôn 1",dt:1531.2,bt:286062000,p20:57212400,cbs:0,total:343274400},
-  {id:14,name:"Nguyễn Thị Minh Hương (Trần Xuân Khánh)",addr:"Thôn 2",dt:699,bt:138904000,p20:27780800,cbs:0,total:166684800},
-  {id:15,name:"Bùi Thị Tuyết (chồng Nguyễn Văn Thọ)",addr:"Thôn 2",dt:916.4,bt:186527000,p20:37305400,cbs:0,total:223832400},
-  {id:16,name:"Nguyễn Thị An",addr:"Thôn 2",dt:806.2,bt:154800000,p20:30960000,cbs:0,total:185760000},
-  {id:17,name:"Thái Thị Nghĩa",addr:"Thôn 4",dt:478,bt:87585000,p20:17517000,cbs:0,total:105102000},
-  {id:18,name:"Mai Thị Thảo",addr:"Thôn 4",dt:562.9,bt:108718000,p20:21743600,cbs:0,total:130461600},
-  {id:19,name:"Bùi Văn Lưu",addr:"Thôn 4",dt:10.7,bt:4952000,p20:990400,cbs:0,total:5942400},
-  {id:20,name:"Dương Thị Hồng",addr:"Thôn 4",dt:44.3,bt:9364000,p20:1872800,cbs:0,total:11236800},
-  {id:21,name:"Phan Văn Cảnh",addr:"Thôn 4",dt:1161.6,bt:211526000,p20:42305200,cbs:0,total:253831200},
-  {id:22,name:"Nguyễn Kim Sửu",addr:"Thôn 3",dt:715.9,bt:134243000,p20:26848600,cbs:0,total:161091600},
-  {id:23,name:"Phạm Thị Hiên",addr:"Thôn 3",dt:645.4,bt:117186000,p20:23437200,cbs:0,total:140623200},
-  {id:24,name:"Nguyễn Thị Hảo",addr:"Thôn 3",dt:1166.9,bt:212463000,p20:42492600,cbs:0,total:254955600},
-  {id:25,name:"Nguyễn Viết Thường",addr:"Thôn 3",dt:773,bt:142810000,p20:28562000,cbs:0,total:171372000},
-  {id:26,name:"Nguyễn Kim Tiến",addr:"Thôn 3",dt:810.1,bt:164670000,p20:32934000,cbs:0,total:197604000},
-  {id:27,name:"Nguyễn Thái Học",addr:"Thôn 3",dt:1170,bt:219131000,p20:43826200,cbs:0,total:262957200},
-  {id:28,name:"Nguyễn Kim Chinh (con Nguyễn Kim Thực)",addr:"Thôn 3",dt:432.7,bt:94874000,p20:18974800,cbs:0,total:113848800},
-  {id:29,name:"Nguyễn Văn Nho",addr:"Thôn 3",dt:329.9,bt:62926000,p20:12585200,cbs:0,total:75511200},
-  {id:30,name:"Nguyễn Kim Thực (Vợ Bùi Thị Thanh)",addr:"Thôn 3",dt:1234.5,bt:221357000,p20:44271400,cbs:0,total:265628400},
-  {id:31,name:"Nguyễn Thị Sáng",addr:"Thôn 3",dt:578.4,bt:108398000,p20:21679600,cbs:0,total:130077600},
-  {id:32,name:"Nguyễn Kim Thực (Ruộng Họ Nguyễn Kim)",addr:"Thôn 3",dt:571.4,bt:101041000,p20:20208200,cbs:0,total:121249200},
-  {id:33,name:"Nguyễn Thị Thủy (chồng Nguyễn Kim Long)",addr:"Thôn 3",dt:2086.8,bt:375129000,p20:75025800,cbs:0,total:450154800},
-  {id:34,name:"Nguyễn Kim Hội (con ông Nguyễn Kim Nhiếp)",addr:"Thôn 3",dt:59.4,bt:3142000,p20:3142000,cbs:0,total:6284000},
-  {id:35,name:"Phan Thị Hoa (chồng Nguyễn Kim Thái)",addr:"Thôn 3",dt:364.2,bt:73581000,p20:14716200,cbs:0,total:88297200},
-  {id:36,name:"Trương Thị Huyền",addr:"Thôn 3",dt:864.6,bt:165127000,p20:33025400,cbs:0,total:198152400},
-  {id:37,name:"Lê Thị Thanh",addr:"Thôn 3",dt:1691.7,bt:317503000,p20:63500600,cbs:0,total:381003600},
-  {id:38,name:"Lưu Thị Tính",addr:"Thôn 3",dt:1799.3,bt:339590000,p20:67918000,cbs:0,total:407508000},
-  {id:39,name:"Lê Thị Thanh (vợ Ông Tiệm)",addr:"Thôn 3",dt:184.3,bt:35650000,p20:7130000,cbs:0,total:42780000},
-  {id:40,name:"Nguyễn Kim Long",addr:"Thôn 3",dt:1598.8,bt:313316000,p20:62663200,cbs:0,total:375979200},
-  {id:41,name:"Phạm Thị Minh (Nguyễn Văn Thơi)",addr:"Thôn 3",dt:824.5,bt:148856000,p20:29771200,cbs:0,total:178627200},
-  {id:42,name:"Nguyễn Kim Chính (vợ Nguyễn Thị Luận)",addr:"Thôn 3",dt:398.4,bt:101049000,p20:20209800,cbs:0,total:121258800},
-  {id:43,name:"Lê Thị Sỹ",addr:"Thôn 3",dt:1834.5,bt:330515000,p20:66103000,cbs:0,total:396618000},
-  {id:44,name:"Phạm Thị Huyên",addr:"Thôn 3",dt:862.1,bt:155505000,p20:31101000,cbs:0,total:186606000},
-  {id:45,name:"Nguyễn Thị Lan",addr:"Thôn 3",dt:616.4,bt:115118000,p20:23023600,cbs:0,total:138141600},
-  {id:46,name:"Nguyễn Kim Hùng (con bà Mai Thị Lan)",addr:"Thôn 3",dt:1678.1,bt:302858000,p20:60571600,cbs:0,total:363429600},
-  {id:47,name:"Phan Thị Xuân",addr:"Thôn 3",dt:1011.9,bt:185054000,p20:37010800,cbs:0,total:222064800},
-  {id:48,name:"Nguyễn Kim Đồng",addr:"Thôn 3",dt:1496.9,bt:279997000,p20:55999400,cbs:0,total:335996400},
-  {id:49,name:"Lê Hoàng Nam",addr:"Thôn 3",dt:899.6,bt:47589000,p20:47589000,cbs:0,total:95178000},
-  {id:50,name:"Đinh Thị Thìn",addr:"Thôn 3",dt:1224.8,bt:219641000,p20:43928200,cbs:0,total:263569200},
-  {id:51,name:"Nguyễn Kim Mão",addr:"Thôn 3",dt:964.6,bt:176690000,p20:35338000,cbs:0,total:212028000},
-  {id:52,name:"Nguyễn Đức Mai",addr:"Thôn 3",dt:1429.4,bt:258881000,p20:51776200,cbs:0,total:310657200},
-  {id:53,name:"Hà Thị Liên",addr:"Thôn 3",dt:231.8,bt:44049000,p20:8809800,cbs:0,total:52858800},
-  {id:54,name:"Nguyễn Văn Lâm (vợ Nguyễn Thị Kim Hoa)",addr:"Thôn 3",dt:677.5,bt:125922000,p20:25184400,cbs:0,total:151106400},
-  {id:55,name:"Phạm Ngọc Toàn",addr:"Thôn 3",dt:815.7,bt:147300000,p20:29460000,cbs:0,total:176760000},
-  {id:56,name:"Phạm Thị Diệu (Nguyễn Văn Thiện)",addr:"Thôn 3",dt:36.5,bt:15634000,p20:3126800,cbs:0,total:18760800},
-  {id:57,name:"Nguyễn Kim Trúc",addr:"Thôn 3",dt:1072.9,bt:201961000,p20:40392200,cbs:0,total:242353200},
-  {id:58,name:"Nguyễn Văn Hải",addr:"Thôn 3",dt:129,bt:30461000,p20:6092200,cbs:0,total:36553200},
-  {id:59,name:"Trần Thị Hồng Sâm",addr:"Thôn 3",dt:628.3,bt:120282000,p20:24056400,cbs:0,total:144338400},
-  {id:60,name:"Nguyễn Kim Cương (vợ Nguyễn Thị Dung)",addr:"Thôn 3",dt:756.5,bt:136832000,p20:27366400,cbs:0,total:164198400},
-  {id:61,name:"Bùi Thị Cầm (chồng Nguyễn Kim Vinh)",addr:"Thôn 3",dt:731.7,bt:147747000,p20:29549400,cbs:0,total:177296400},
-  {id:62,name:"Phan Thị Sáng (Nguyễn Viết Cần)",addr:"Thôn 3",dt:1107,bt:207991000,p20:41598200,cbs:0,total:249589200},
-  {id:63,name:"Nguyễn Kim Thường",addr:"Thôn 3",dt:2256.3,bt:417342000,p20:83468400,cbs:0,total:500810400},
-  {id:64,name:"Nguyễn Thị Trọng (chồng Phạm Hồng Quang)",addr:"Thôn 3",dt:733.1,bt:135754000,p20:27150800,cbs:0,total:162904800},
-  {id:65,name:"Nguyễn Thị Trang",addr:"Thôn 3",dt:243.8,bt:49231000,p20:9846200,cbs:0,total:59077200},
-  {id:66,name:"Nguyễn Viết Thế (vợ Phạm Thị Hợi)",addr:"Thôn 3",dt:649.2,bt:123978000,p20:24795600,cbs:0,total:148773600},
-  {id:67,name:"Hoàng Thị Liệm (con Nguyễn Kim Dũng)",addr:"Thôn 3",dt:1116.7,bt:209706000,p20:41941200,cbs:0,total:251647200},
-  {id:68,name:"Nguyễn Kim Hiệp",addr:"Thôn 3",dt:1077.6,bt:205852000,p20:41170400,cbs:0,total:247022400},
-  {id:69,name:"Nguyễn Kim Hương (vợ Nguyễn Thị Hoa)",addr:"Thôn 3",dt:1321.2,bt:251988000,p20:50397600,cbs:0,total:302385600},
-  {id:70,name:"Nguyễn Thị Hà",addr:"Thôn 3",dt:368,bt:25587000,p20:25587000,cbs:0,total:51174000},
-  {id:71,name:"Nguyễn Thị Tâm (chồng Nguyễn Trọng Minh)",addr:"Thôn 3",dt:1332.6,bt:247884000,p20:49576800,cbs:0,total:297460800},
-  {id:72,name:"Lê Thị Canh",addr:"Thôn 3",dt:639.8,bt:116196000,p20:23239200,cbs:0,total:139435200},
-  {id:73,name:"Phạm Thị Mục",addr:"Thôn 3",dt:598.5,bt:108893000,p20:21778600,cbs:0,total:130671600},
-  {id:74,name:"Phan Duy Dần",addr:"Thôn 3",dt:2147.9,bt:385933000,p20:77186600,cbs:0,total:463119600},
-  {id:75,name:"Nguyễn Kim Nhuệ",addr:"Thôn 3",dt:406.3,bt:77966000,p20:15593200,cbs:0,total:93559200},
-  {id:76,name:"Nguyễn Kim Đường (vợ Nguyễn Thị Dần)",addr:"Thôn 3",dt:540.7,bt:104792000,p20:20958400,cbs:0,total:125750400},
-  {id:77,name:"Lê Thị Mai Hường (chồng Trần Đình Cương)",addr:"Thôn 3",dt:288,bt:65891000,p20:13178200,cbs:0,total:79069200},
-  {id:78,name:"Phạm Minh",addr:"Thôn 3",dt:766.9,bt:150911000,p20:30182200,cbs:0,total:181093200},
-  {id:79,name:"Nguyễn Kim Khiên (vợ Nguyễn Thị Hương)",addr:"Thôn 3",dt:632.1,bt:119424000,p20:23884800,cbs:0,total:143308800},
-  {id:80,name:"Lê Danh Vĩ",addr:"Thôn 3",dt:1191.4,bt:216795000,p20:43359000,cbs:0,total:260154000},
-  {id:81,name:"Nguyễn Kim Trường",addr:"Thôn 3",dt:1092.5,bt:194717000,p20:38943400,cbs:0,total:233660400},
-  {id:82,name:"Trần Thị Tý (chồng Lê Ngọc Thành)",addr:"Thôn 3",dt:1049,bt:191615000,p20:38323000,cbs:0,total:229938000},
-  {id:83,name:"Nguyễn Xuân Chức",addr:"Thôn 1",dt:243.8,bt:49231000,p20:9846200,cbs:0,total:59077200},
-  {id:84,name:"Nguyễn Kim Nhuệ (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:3524000,p20:0,cbs:0,total:3524000},
-  {id:85,name:"Võ Văn Đức (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:15421000,p20:0,cbs:0,total:15421000},
-  {id:86,name:"Phạm Văn Long (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:5002000,p20:0,cbs:0,total:5002000},
-  {id:87,name:"Nguyễn Kim Sửu (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:1000000,p20:0,cbs:0,total:1000000},
-  {id:88,name:"Nguyễn Kim Tiến (Lê Thị Hoa) (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:1787000,p20:0,cbs:0,total:1787000},
-  {id:89,name:"Lê Thị Anh (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:5016000,p20:0,cbs:0,total:5016000},
-  {id:90,name:"Phạm Thị Lài (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:7815000,p20:0,cbs:0,total:7815000},
-  {id:91,name:"Nguyễn Xuân Khương (vợ Nguyễn Thị Thương)",addr:"Thôn",dt:334,bt:65181000,p20:13036200,cbs:0,total:78217200},
-  {id:92,name:"Trần Thanh Hải (đất 5% UB xã)",addr:"Thôn 3",dt:0,bt:6168000,p20:0,cbs:0,total:6168000},
-  {id:93,name:"Nguyễn Hữu Anh",addr:"Thôn 1",dt:355.5,bt:99583000,p20:19916600,cbs:0,total:119499600}
+'use strict';
+
+/* ============================================================
+   CLOUD CONFIG — thay key và bin id của bạn vào đây
+   ============================================================ */
+const CLOUD = {
+  url: 'https://api.jsonbin.io/v3/b',
+  key: '$2a$10$J7gclCENzkOn3pXmB8amruwUR1GE0POzWeHqxYoN4//H7XiMwkwYi',
+  binId: '69e5ea8d856a68218952098e'
+};
+
+/* ============================================================
+   AUTH CONFIG
+   ============================================================ */
+const USERS = {
+  admin: { pass: 'Ha123456', role: 'admin', label: '👑 Admin' },
+  guest: { pass: '1234',     role: 'guest', label: '👁️ Guest' }
+};
+
+/* ============================================================
+   BASE DATA
+   ============================================================ */
+const BASE_DATA = [
+  {id:"h001",hoTen:"Trương Thị Vinh (Ngô Quang Hùng)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:916.9,tienBoiThuong:174375000,tienHoTro20:34875000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h002",hoTen:"Lê Danh Lượng (vợ Lê Thị Thu)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:1091.5,tienBoiThuong:196070000,tienHoTro20:39214000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h003",hoTen:"Nguyễn Kim Hạp",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:1299.5,tienBoiThuong:238971000,tienHoTro20:47794200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h004",hoTen:"Nguyễn Kim Minh (Đinh Thị Chung)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:763.3,tienBoiThuong:150274000,tienHoTro20:30054800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h005",hoTen:"Lê Vạn Thư (vợ Tăng Thị Anh)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:1152.6,tienBoiThuong:216054000,tienHoTro20:43210800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h006",hoTen:"Nguyễn Xuân Đồng (vợ Lê Thị Hài)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:393.8,tienBoiThuong:81876000,tienHoTro20:16375200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h007",hoTen:"Lê Đình Thọ",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:1141.7,tienBoiThuong:217187000,tienHoTro20:43437400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h008",hoTen:"Nguyễn Thị Lục (con Lê Thanh Tú)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:579.5,tienBoiThuong:105533000,tienHoTro20:21106600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h009",hoTen:"Nguyễn Kim Đương (vợ Nguyễn Thị Trường Thành)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:1602.9,tienBoiThuong:292621000,tienHoTro20:58524200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h010",hoTen:"Nguyễn Hữu Tính",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:1218.5,tienBoiThuong:218527000,tienHoTro20:43705400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h011",hoTen:"Lê Thị Thảo (chồng Lê Vạn Hiền)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:269.6,tienBoiThuong:55323000,tienHoTro20:11064600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h012",hoTen:"Nguyễn Thị Lam",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:428.7,tienBoiThuong:84987000,tienHoTro20:16997400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h013",hoTen:"Nguyễn Kim Minh (Nguyễn Thị Hương)",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:1531.2,tienBoiThuong:286062000,tienHoTro20:57212400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h014",hoTen:"Nguyễn Thị Minh Hương (Trần Xuân Khánh)",diaChi:"Thôn 2",soThua:"",toBanDo:"",dienTich:699,tienBoiThuong:138904000,tienHoTro20:27780800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h015",hoTen:"Bùi Thị Tuyết (chồng Nguyễn Văn Thọ)",diaChi:"Thôn 2",soThua:"",toBanDo:"",dienTich:916.4,tienBoiThuong:186527000,tienHoTro20:37305400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h016",hoTen:"Nguyễn Thị An",diaChi:"Thôn 2",soThua:"",toBanDo:"",dienTich:806.2,tienBoiThuong:154800000,tienHoTro20:30960000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h017",hoTen:"Thái Thị Nghĩa",diaChi:"Thôn 4",soThua:"",toBanDo:"",dienTich:478,tienBoiThuong:87585000,tienHoTro20:17517000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h018",hoTen:"Mai Thị Thảo",diaChi:"Thôn 4",soThua:"",toBanDo:"",dienTich:562.9,tienBoiThuong:108718000,tienHoTro20:21743600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h019",hoTen:"Bùi Văn Lưu",diaChi:"Thôn 4",soThua:"",toBanDo:"",dienTich:10.7,tienBoiThuong:4952000,tienHoTro20:990400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h020",hoTen:"Dương Thị Hồng",diaChi:"Thôn 4",soThua:"",toBanDo:"",dienTich:44.3,tienBoiThuong:9364000,tienHoTro20:1872800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h021",hoTen:"Phan Văn Cảnh",diaChi:"Thôn 4",soThua:"",toBanDo:"",dienTich:1161.6,tienBoiThuong:211526000,tienHoTro20:42305200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h022",hoTen:"Nguyễn Kim Sửu",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:715.9,tienBoiThuong:134243000,tienHoTro20:26848600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h023",hoTen:"Phạm Thị Hiên",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:645.4,tienBoiThuong:117186000,tienHoTro20:23437200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h024",hoTen:"Nguyễn Thị Hảo",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1166.9,tienBoiThuong:212463000,tienHoTro20:42492600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h025",hoTen:"Nguyễn Viết Thường",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:773,tienBoiThuong:142810000,tienHoTro20:28562000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h026",hoTen:"Nguyễn Kim Tiến",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:810.1,tienBoiThuong:164670000,tienHoTro20:32934000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h027",hoTen:"Nguyễn Thái Học",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1170,tienBoiThuong:219131000,tienHoTro20:43826200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h028",hoTen:"Nguyễn Kim Chinh (con Nguyễn Kim Thực)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:432.7,tienBoiThuong:94874000,tienHoTro20:18974800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h029",hoTen:"Nguyễn Văn Nho",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:329.9,tienBoiThuong:62926000,tienHoTro20:12585200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h030",hoTen:"Nguyễn Kim Thực (Vợ Bùi Thị Thanh)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1234.5,tienBoiThuong:221357000,tienHoTro20:44271400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h031",hoTen:"Nguyễn Thị Sáng",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:578.4,tienBoiThuong:108398000,tienHoTro20:21679600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h032",hoTen:"Nguyễn Kim Thực (Ruộng Họ Nguyễn Kim)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:571.4,tienBoiThuong:101041000,tienHoTro20:20208200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h033",hoTen:"Nguyễn Thị Thủy (chồng Nguyễn Kim Long)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:2086.8,tienBoiThuong:375129000,tienHoTro20:75025800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h034",hoTen:"Nguyễn Kim Hội (con ông Nguyễn Kim Nhiếp)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:59.4,tienBoiThuong:3142000,tienHoTro20:3142000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h035",hoTen:"Phan Thị Hoa (chồng Nguyễn Kim Thái)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:364.2,tienBoiThuong:73581000,tienHoTro20:14716200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h036",hoTen:"Trương Thị Huyền",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:864.6,tienBoiThuong:165127000,tienHoTro20:33025400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h037",hoTen:"Lê Thị Thanh",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1691.7,tienBoiThuong:317503000,tienHoTro20:63500600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h038",hoTen:"Lưu Thị Tính",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1799.3,tienBoiThuong:339590000,tienHoTro20:67918000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h039",hoTen:"Lê Thị Thanh (vợ Ông Tiệm)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:184.3,tienBoiThuong:35650000,tienHoTro20:7130000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h040",hoTen:"Nguyễn Kim Long",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1598.8,tienBoiThuong:313316000,tienHoTro20:62663200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h041",hoTen:"Phạm Thị Minh (Nguyễn Văn Thơi)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:824.5,tienBoiThuong:148856000,tienHoTro20:29771200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h042",hoTen:"Nguyễn Kim Chính (vợ Nguyễn Thị Luận)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:398.4,tienBoiThuong:101049000,tienHoTro20:20209800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h043",hoTen:"Lê Thị Sỹ",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1834.5,tienBoiThuong:330515000,tienHoTro20:66103000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h044",hoTen:"Phạm Thị Huyên",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:862.1,tienBoiThuong:155505000,tienHoTro20:31101000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h045",hoTen:"Nguyễn Thị Lan",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:616.4,tienBoiThuong:115118000,tienHoTro20:23023600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h046",hoTen:"Nguyễn Kim Hùng (con bà Mai Thị Lan)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1678.1,tienBoiThuong:302858000,tienHoTro20:60571600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h047",hoTen:"Phan Thị Xuân",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1011.9,tienBoiThuong:185054000,tienHoTro20:37010800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h048",hoTen:"Nguyễn Kim Đồng",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1496.9,tienBoiThuong:279997000,tienHoTro20:55999400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h049",hoTen:"Lê Hoàng Nam",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:899.6,tienBoiThuong:47589000,tienHoTro20:47589000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h050",hoTen:"Đinh Thị Thìn",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1224.8,tienBoiThuong:219641000,tienHoTro20:43928200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h051",hoTen:"Nguyễn Kim Mão",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:964.6,tienBoiThuong:176690000,tienHoTro20:35338000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h052",hoTen:"Nguyễn Đức Mai",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1429.4,tienBoiThuong:258881000,tienHoTro20:51776200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h053",hoTen:"Hà Thị Liên",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:231.8,tienBoiThuong:44049000,tienHoTro20:8809800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h054",hoTen:"Nguyễn Văn Lâm (vợ Nguyễn Thị Kim Hoa)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:677.5,tienBoiThuong:125922000,tienHoTro20:25184400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h055",hoTen:"Phạm Ngọc Toàn",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:815.7,tienBoiThuong:147300000,tienHoTro20:29460000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h056",hoTen:"Phạm Thị Diệu (Nguyễn Văn Thiện)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:36.5,tienBoiThuong:15634000,tienHoTro20:3126800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h057",hoTen:"Nguyễn Kim Trúc",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1072.9,tienBoiThuong:201961000,tienHoTro20:40392200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h058",hoTen:"Nguyễn Văn Hải",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:129,tienBoiThuong:30461000,tienHoTro20:6092200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h059",hoTen:"Trần Thị Hồng Sâm",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:628.3,tienBoiThuong:120282000,tienHoTro20:24056400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h060",hoTen:"Nguyễn Kim Cương (vợ Nguyễn Thị Dung)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:756.5,tienBoiThuong:136832000,tienHoTro20:27366400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h061",hoTen:"Bùi Thị Cầm (chồng Nguyễn Kim Vinh)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:731.7,tienBoiThuong:147747000,tienHoTro20:29549400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h062",hoTen:"Phan Thị Sáng (Nguyễn Viết Cần)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1107,tienBoiThuong:207991000,tienHoTro20:41598200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h063",hoTen:"Nguyễn Kim Thường",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:2256.3,tienBoiThuong:417342000,tienHoTro20:83468400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h064",hoTen:"Nguyễn Thị Trọng (chồng Phạm Hồng Quang)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:733.1,tienBoiThuong:135754000,tienHoTro20:27150800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h065",hoTen:"Nguyễn Thị Trang",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:243.8,tienBoiThuong:49231000,tienHoTro20:9846200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h066",hoTen:"Nguyễn Viết Thế (vợ Phạm Thị Hợi)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:649.2,tienBoiThuong:123978000,tienHoTro20:24795600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h067",hoTen:"Hoàng Thị Liệm (con Nguyễn Kim Dũng)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1116.7,tienBoiThuong:209706000,tienHoTro20:41941200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h068",hoTen:"Nguyễn Kim Hiệp",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1077.6,tienBoiThuong:205852000,tienHoTro20:41170400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h069",hoTen:"Nguyễn Kim Hương (vợ Nguyễn Thị Hoa)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1321.2,tienBoiThuong:251988000,tienHoTro20:50397600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h070",hoTen:"Nguyễn Thị Hà",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:368,tienBoiThuong:25587000,tienHoTro20:25587000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h071",hoTen:"Nguyễn Thị Tâm (chồng Nguyễn Trọng Minh)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1332.6,tienBoiThuong:247884000,tienHoTro20:49576800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h072",hoTen:"Lê Thị Canh",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:639.8,tienBoiThuong:116196000,tienHoTro20:23239200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h073",hoTen:"Phạm Thị Mục",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:598.5,tienBoiThuong:108893000,tienHoTro20:21778600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h074",hoTen:"Phan Duy Dần",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:2147.9,tienBoiThuong:385933000,tienHoTro20:77186600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h075",hoTen:"Nguyễn Kim Nhuệ",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:406.3,tienBoiThuong:77966000,tienHoTro20:15593200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h076",hoTen:"Nguyễn Kim Đường (vợ Nguyễn Thị Dần)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:540.7,tienBoiThuong:104792000,tienHoTro20:20958400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h077",hoTen:"Lê Thị Mai Hường (chồng Trần Đình Cương)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:288,tienBoiThuong:65891000,tienHoTro20:13178200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h078",hoTen:"Phạm Minh",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:766.9,tienBoiThuong:150911000,tienHoTro20:30182200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h079",hoTen:"Nguyễn Kim Khiên (vợ Nguyễn Thị Hương)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:632.1,tienBoiThuong:119424000,tienHoTro20:23884800,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h080",hoTen:"Lê Danh Vĩ",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1191.4,tienBoiThuong:216795000,tienHoTro20:43359000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h081",hoTen:"Nguyễn Kim Trường",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1092.5,tienBoiThuong:194717000,tienHoTro20:38943400,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h082",hoTen:"Trần Thị Tý (chồng Lê Ngọc Thành)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:1049,tienBoiThuong:191615000,tienHoTro20:38323000,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h083",hoTen:"Nguyễn Xuân Chức",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:243.8,tienBoiThuong:49231000,tienHoTro20:9846200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h084",hoTen:"Nguyễn Kim Nhuệ (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:3524000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h085",hoTen:"Võ Văn Đức (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:15421000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h086",hoTen:"Phạm Văn Long (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:5002000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h087",hoTen:"Nguyễn Kim Sửu (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:1000000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h088",hoTen:"Nguyễn Kim Tiến (Lê Thị Hoa) (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:1787000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h089",hoTen:"Lê Thị Anh (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:5016000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h090",hoTen:"Phạm Thị Lài (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:7815000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h091",hoTen:"Nguyễn Xuân Khương (vợ Nguyễn Thị Thương)",diaChi:"Thôn",soThua:"",toBanDo:"",dienTich:334,tienBoiThuong:65181000,tienHoTro20:13036200,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h092",hoTen:"Trần Thanh Hải (đất 5% UB xã)",diaChi:"Thôn 3",soThua:"",toBanDo:"",dienTich:0,tienBoiThuong:6168000,tienHoTro20:0,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""},
+  {id:"h093",hoTen:"Nguyễn Hữu Anh",diaChi:"Thôn 1",soThua:"",toBanDo:"",dienTich:355.5,tienBoiThuong:99583000,tienHoTro20:19916600,chiBoSung:0,trangThai:"chua_nhan",ngayNhan:"",ghiChu:"",updatedAt:""}
 ];
 
-/* ===== CLOUD CONFIG ===== */
-const JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
-let _cloudKey = '$2a$10$J7gclCENzkOn3pXmB8amruwUR1GE0POzWeHqxYoN4//H7XiMwkwYi';
-let BIN_ID = '69e5ea8d856a68218952098e';
-let cloudEnabled = true;
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentUser = null;  // { name, role, label }
+let state = { records: [] };
+let idCounter = 1000;
+let chartHo = null, chartDt = null;
+let updateImportRows = [];
+let pendingImportRows = [];
+let saveCloudTimer = null;
 
-/* ===== STATE ===== */
-let state = loadLocalState();
-let chartHo=null,chartDt=null;
-let importRows=[];
-let nextId=1000;
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function fmt(n){ return Math.round(n||0).toLocaleString('vi-VN'); }
+function num(v){ const n=parseFloat(String(v||0).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function uid(){ return 'h'+String(++idCounter).padStart(4,'0')+Math.random().toString(36).slice(2,5); }
+function calcTotal(r, g){ return g ? (r.tienBoiThuong+r.tienHoTro20) : (r.tienBoiThuong+r.tienHoTro20+r.chiBoSung); }
+function isAdmin(){ return currentUser && currentUser.role==='admin'; }
+function isGuest(){ return currentUser && currentUser.role==='guest'; }
+
+function getRecord(id){ return state.records.find(r=>r.id===id); }
+function getDA(){ return state.records.filter(r=>r.trangThai==='da_nhan'); }
+function getCHUA(){ return state.records.filter(r=>r.trangThai==='chua_nhan'); }
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+function showSyncStatus(msg, auto=true){
+  const el=document.getElementById('syncStatus');
+  if(!el) return;
+  el.textContent=msg; el.style.opacity='1';
+  if(auto){ clearTimeout(el._t); el._t=setTimeout(()=>el.style.opacity='0',5000); }
+}
+
+function setAlert(elId, type, msg){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  el.className='alert show alert-'+type;
+  el.innerHTML=({'ok':'✅','warn':'⚠️','err':'❌'}[type]||'')+' '+msg;
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{ el.className='alert'; el.innerHTML=''; },4000);
+}
+
+/* ============================================================
+   CLOUD
+   ============================================================ */
+async function loadCloudState(){
+  if(!CLOUD.key||!CLOUD.binId){ showSyncStatus('💡 Chưa cấu hình cloud'); return; }
+  showSyncStatus('⏳ Đang tải cloud...', false);
+  try{
+    const res=await fetch(`${CLOUD.url}/${CLOUD.binId}/latest`,{
+      headers:{'X-Master-Key':CLOUD.key,'X-Bin-Meta':'false'}
+    });
+    if(!res.ok) throw new Error('Cloud error '+res.status);
+    const json=await res.json();
+    const data=json.record||json;
+    if(data&&Array.isArray(data.records)&&data.records.length>0){
+      state=data;
+      idCounter=Math.max(1000,...state.records.map(r=>parseInt(r.id.replace(/\D/g,''))||1000));
+      localStorage.setItem('gpmb_state',JSON.stringify(state));
+      renderAll();
+      showSyncStatus('✅ Đã đồng bộ cloud');
+    } else {
+      showSyncStatus('⚠️ Cloud rỗng — dùng dữ liệu cục bộ');
+    }
+  }catch(e){ showSyncStatus('⚠️ Lỗi cloud — '+e.message); }
+}
+
+async function pushToCloud(){
+  if(!CLOUD.key||!CLOUD.binId) return;
+  showSyncStatus('⏳ Đang lưu cloud...', false);
+  try{
+    const res=await fetch(`${CLOUD.url}/${CLOUD.binId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':CLOUD.key},
+      body:JSON.stringify(state)
+    });
+    if(res.ok){ showSyncStatus('☁️ Đã lưu cloud'); }
+    else throw new Error('HTTP '+res.status);
+  }catch(e){ showSyncStatus('⚠️ Lưu cloud thất bại — '+e.message); }
+}
+
+function saveState(immediate=false){
+  if(!currentUser) return;
+  if(isGuest()){ toast('🔒 Guest không có quyền lưu'); return; }
+  state.records.forEach(r=>{ r.updatedAt=new Date().toISOString(); });
+  localStorage.setItem('gpmb_state',JSON.stringify(state));
+  toast('💾 Đã lưu cục bộ');
+  clearTimeout(saveCloudTimer);
+  if(immediate){ pushToCloud(); }
+  else{ saveCloudTimer=setTimeout(pushToCloud,1500); }
+}
 
 function loadLocalState(){
   try{
-    const s=JSON.parse(localStorage.getItem('gpmb_v3')||'null');
-    if(s&&s.records){ nextId=Math.max(1000,...s.records.map(r=>r.id+1)); return s; }
+    const s=JSON.parse(localStorage.getItem('gpmb_state')||'null');
+    if(s&&Array.isArray(s.records)&&s.records.length>0){
+      state=s;
+      idCounter=Math.max(1000,...state.records.map(r=>parseInt(r.id.replace(/\D/g,''))||1000));
+      return true;
+    }
   }catch(e){}
-  return { records: BASE.map(r=>({...r})), received: [] };
+  return false;
 }
 
-async function loadCloudState(){
-  if(!cloudEnabled||!_cloudKey) return;
-  try{
-    showSyncStatus('⏳ Đang đồng bộ...');
-    if(BIN_ID){
-      const res=await fetch(JSONBIN_URL+'/'+BIN_ID+'/latest',{
-        headers:{'X-Master-Key':_cloudKey,'X-Bin-Meta':'false'}
-      });
-      if(!res.ok) throw new Error('bin_not_found');
-      const json=await res.json();
-      const data=json.record||json;
-      if(data&&data.records){
-        state=data;
-        nextId=Math.max(1000,...state.records.map(r=>r.id+1));
-        localStorage.setItem('gpmb_v3',JSON.stringify(state));
-        renderAll();
-        showSyncStatus('✅ Đã đồng bộ từ cloud');
-        return;
-      }
-    }
-    await createBin();
-  }catch(e){
-    showSyncStatus('⚠️ Không kết nối cloud — dùng dữ liệu cục bộ');
+function resetToBase(){
+  if(!confirm('Xác nhận reset toàn bộ dữ liệu về mặc định?')) return;
+  state={ records: BASE_DATA.map(r=>({...r})) };
+  saveState(true);
+  renderAll();
+  toast('🔄 Đã reset dữ liệu gốc');
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim().toLowerCase();
+  const p=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginErr');
+  if(USERS[u]&&USERS[u].pass===p){
+    currentUser={name:u,role:USERS[u].role,label:USERS[u].label};
+    sessionStorage.setItem('gpmb_session',JSON.stringify(currentUser));
+    err.classList.remove('show');
+    document.getElementById('loginScreen').style.display='none';
+    onAfterLogin();
+  } else {
+    err.classList.add('show');
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginPass').focus();
   }
 }
 
-async function createBin(){
-  try{
-    showSyncStatus('⏳ Đang tạo kho cloud lần đầu...');
-    const res=await fetch(JSONBIN_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Master-Key':_cloudKey,'X-Bin-Name':'GPMB-Data','X-Bin-Private':'true'},
-      body:JSON.stringify(state)
-    });
-    const json=await res.json();
-    BIN_ID=json.metadata?.id||'';
-    if(BIN_ID){
-      localStorage.setItem('gpmb_bin_id',BIN_ID);
-      showSyncStatus('✅ Đã tạo kho cloud');
-    } else {
-      showSyncStatus('⚠️ Tạo kho thất bại — kiểm tra lại API Key');
-    }
-  }catch(e){ showSyncStatus('⚠️ Không thể kết nối cloud'); }
+function doLogout(){
+  sessionStorage.removeItem('gpmb_session');
+  currentUser=null;
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginErr').classList.remove('show');
+  document.getElementById('loginScreen').style.display='flex';
 }
 
-let saveTimer=null;
-function saveState(){
-  localStorage.setItem('gpmb_v3',JSON.stringify(state));
-  showToast('💾 Đã lưu');
-  if(cloudEnabled&&_cloudKey){
-    clearTimeout(saveTimer);
-    saveTimer=setTimeout(saveCloud,1400);
+function onAfterLogin(){
+  applyAuth();
+  if(!loadLocalState()){
+    state={records:BASE_DATA.map(r=>({...r}))};
+  }
+  renderAll();
+  loadCloudState();
+}
+
+function applyAuth(){
+  if(!currentUser) return;
+  const g=isGuest();
+
+  // User pill
+  const pill=document.getElementById('userPill');
+  if(pill){ pill.textContent=currentUser.label; pill.className='user-pill'+(g?' guest':''); }
+
+  // Cloud badge
+  const cb=document.getElementById('cloudBadge');
+  if(cb) cb.textContent=CLOUD.binId?'☁️ Cloud':'🔴 Cục bộ';
+
+  // Show/hide admin-only elements
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display=g?'none':'';
+  });
+
+  // Guest banners
+  document.querySelectorAll('.guest-banner').forEach(el=>{
+    el.style.display=g?'flex':'none';
+    el.classList.toggle('show', g);
+  });
+
+  // Admin data tab visibility
+  const adminTab=document.querySelector('[data-tab="admin"]');
+  if(adminTab) adminTab.style.display=g?'none':'';
+
+  // Update admin data info
+  const info=document.getElementById('adminDataInfo');
+  if(info){
+    info.innerHTML=`
+      <p>Tổng hộ: <strong>${state.records.length}</strong></p>
+      <p>Đã nhận: <strong>${getDA().length}</strong></p>
+      <p>Chưa nhận: <strong>${getCHUA().length}</strong></p>
+      <p>Cloud Bin ID: <strong>${CLOUD.binId||'Chưa cấu hình'}</strong></p>
+    `;
   }
 }
 
-async function saveCloud(){
-  if(!cloudEnabled||!_cloudKey||!BIN_ID) return;
-  try{
-    showSyncStatus('⏳ Đang lưu cloud...');
-    const res=await fetch(JSONBIN_URL+'/'+BIN_ID,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json','X-Master-Key':_cloudKey},
-      body:JSON.stringify(state)
-    });
-    if(res.ok) showSyncStatus('☁️ Đã lưu cloud');
-    else throw new Error();
-  }catch(e){ showSyncStatus('⚠️ Lưu cloud thất bại'); }
-}
-
-function showSyncStatus(msg){
-  const el=document.getElementById('syncStatus');
-  if(!el) return;
-  el.textContent=msg;
-  el.style.opacity='1';
-  clearTimeout(el._t);
-  el._t=setTimeout(()=>el.style.opacity='0',5000);
-}
-
-
-function getRecord(id){ return state.records.find(r=>r.id===id); }
-function isReceived(id){ return state.received.includes(id); }
-function calcTotal(r){ return (r.bt||0)+(r.p20||0)+(r.cbs||0); }
-
-function norm(s){ return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
-function fmt(n){ return Math.round(n||0).toLocaleString('vi-VN'); }
-function num(v){ const n=parseFloat(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
-
-/* ===== TOAST ===== */
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
-}
-
-/* ===== TABS ===== */
-function switchTab(name,btn){
+/* ============================================================
+   TABS
+   ============================================================ */
+function switchTab(name){
   document.querySelectorAll('.tab-pane').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  btn.classList.add('active');
+  const pane=document.getElementById('tab-'+name);
+  if(pane) pane.classList.add('active');
+  const btn=document.querySelector(`[data-tab="${name}"]`);
+  if(btn) btn.classList.add('active');
 }
 
-/* ===== SUGGEST ===== */
-function fuzzyFind(q,onlyUnreceived=true){
+/* ============================================================
+   RENDER ALL
+   ============================================================ */
+function renderAll(){
+  renderMetrics();
+  renderProgress();
+  renderCharts();
+  renderUpdateTable();
+  renderReceivedTable();
+  renderPendingTable();
+  renderReport();
+  applyAuth();
+
+  const total=state.records.length;
+  const da=getDA().length;
+  const el=document.getElementById('hBadge');
+  if(el) el.textContent=da+' / '+total+' hộ';
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function renderMetrics(){
+  const g=isGuest();
+  const da=getDA(), chua=getCHUA(), all=state.records;
+  const tDt=all.reduce((s,r)=>s+r.dienTich,0);
+  const rDt=da.reduce((s,r)=>s+r.dienTich,0);
+  const rBt=da.reduce((s,r)=>s+r.tienBoiThuong,0);
+  const rP20=da.reduce((s,r)=>s+r.tienHoTro20,0);
+  const rCbs=da.reduce((s,r)=>s+r.chiBoSung,0);
+  const rTot=rBt+rP20+(g?0:rCbs);
+  const pct=all.length>0?Math.round(da.length/all.length*100):0;
+
+  const cbsCard=g?'':
+    `<div class="mcard c-purple"><div class="mlabel">Chi bổ sung</div><div class="mval" style="font-size:14px">${fmt(rCbs)}</div><div class="msub">đồng đã chi</div></div>`;
+
+  document.getElementById('metricsGrid').innerHTML=`
+    <div class="mcard c-blue"><div class="mlabel">Hộ đã nhận</div><div class="mval">${da.length}</div><div class="msub">/ ${all.length} hộ · ${pct}%</div></div>
+    <div class="mcard"><div class="mlabel">Diện tích đã nhận</div><div class="mval" style="font-size:16px">${fmt(rDt)}</div><div class="msub">m² (${tDt>0?Math.round(rDt/tDt*100):0}%)</div></div>
+    <div class="mcard c-green"><div class="mlabel">Bồi thường</div><div class="mval" style="font-size:14px">${fmt(rBt)}</div><div class="msub">đồng đã chi</div></div>
+    <div class="mcard c-amber"><div class="mlabel">20% tăng thêm</div><div class="mval" style="font-size:14px">${fmt(rP20)}</div><div class="msub">đồng đã chi</div></div>
+    ${cbsCard}
+  `;
+}
+
+function renderProgress(){
+  const da=getDA().length, total=state.records.length;
+  const pct=total>0?Math.round(da/total*100):0;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('pctText').textContent=pct+'%';
+  document.getElementById('legDa').textContent=da+' hộ';
+  document.getElementById('legChua').textContent=(total-da)+' hộ';
+}
+
+function renderCharts(){
+  const da=getDA(), chua=getCHUA();
+  const rHo=da.length, cHo=chua.length;
+  const rDt=Math.round(da.reduce((s,r)=>s+r.dienTich,0));
+  const cDt=Math.round(chua.reduce((s,r)=>s+r.dienTich,0));
+  const B='#2563a8', G='#e2e8f0';
+  const mkOpts=(d1,d2,l1,l2,unit)=>({
+    type:'doughnut',
+    data:{labels:[l1,l2],datasets:[{data:[d1,d2],backgroundColor:[B,G],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{
+        const t=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+        const v=unit==='ho'?ctx.parsed+' hộ':Math.round(ctx.parsed).toLocaleString('vi-VN')+' m²';
+        return ctx.label+': '+v+' ('+Math.round(ctx.parsed/t*100)+'%)';
+      }}}}}
+  });
+  if(chartHo){chartHo.destroy();}
+  if(chartDt){chartDt.destroy();}
+  try{
+    chartHo=new Chart(document.getElementById('pieHo'),mkOpts(rHo,cHo,'Đã nhận','Chưa nhận','ho'));
+    chartDt=new Chart(document.getElementById('pieDt'),mkOpts(rDt,cDt,'Đã nhận','Chưa nhận','dt'));
+  }catch(e){}
+}
+
+/* ============================================================
+   TABLE HEADERS
+   ============================================================ */
+function tableHeader(showCbs, cols){
+  // cols: array of {k, label, admin}
+  return cols.filter(c=>!(c.admin&&!showCbs))
+    .map(c=>`<th>${c.label}</th>`).join('');
+}
+
+function buildCols(isAdmin){
+  return [
+    {k:'stt',label:'#'},
+    {k:'hoTen',label:'Họ và tên'},
+    {k:'diaChi',label:'Địa chỉ'},
+    {k:'soThua',label:'Số thửa'},
+    {k:'toBanDo',label:'Tờ bản đồ'},
+    {k:'dienTich',label:'DT (m²)'},
+    {k:'tienBoiThuong',label:'Bồi thường'},
+    {k:'tienHoTro20',label:'20%'},
+    {k:'chiBoSung',label:'Chi bổ sung',admin:true},
+    {k:'tongTien',label:'Tổng'},
+    {k:'ngayNhan',label:'Ngày nhận'},
+    {k:'ghiChu',label:'Ghi chú'},
+  ].filter(c=>!(c.admin&&!isAdmin));
+}
+
+function rowCells(r, showCbs){
+  const total=calcTotal(r, !showCbs);
+  return `
+    <td>${r.diaChi||'—'}</td>
+    <td>${r.soThua||'—'}</td>
+    <td>${r.toBanDo||'—'}</td>
+    <td>${r.dienTich>0?fmt(r.dienTich):'—'}</td>
+    <td>${fmt(r.tienBoiThuong)}</td>
+    <td>${r.tienHoTro20>0?fmt(r.tienHoTro20):'—'}</td>
+    ${showCbs?`<td>${r.chiBoSung>0?`<span style="color:var(--purple);font-weight:600">${fmt(r.chiBoSung)}</span>`:'—'}</td>`:''}
+    <td><strong>${fmt(total)}</strong></td>
+    <td>${r.ngayNhan||'—'}</td>
+    <td>${r.ghiChu||'—'}</td>
+  `;
+}
+
+function footCells(list, showCbs){
+  const tDt=list.reduce((s,r)=>s+r.dienTich,0);
+  const tBt=list.reduce((s,r)=>s+r.tienBoiThuong,0);
+  const tP20=list.reduce((s,r)=>s+r.tienHoTro20,0);
+  const tCbs=list.reduce((s,r)=>s+r.chiBoSung,0);
+  const tTot=tBt+tP20+(showCbs?tCbs:0);
+  return `
+    <td>${fmt(tDt)} m²</td>
+    <td>${fmt(tBt)}</td>
+    <td>${tP20>0?fmt(tP20):'—'}</td>
+    ${showCbs?`<td>${tCbs>0?fmt(tCbs):'—'}</td>`:''}
+    <td><strong>${fmt(tTot)}</strong></td>
+    <td colspan="2"></td>
+  `;
+}
+
+/* ============================================================
+   UPDATE TABLE
+   ============================================================ */
+function renderUpdateTable(){
+  const list=getDA();
+  const admin=isAdmin();
+  document.getElementById('cntUpdate').textContent=list.length;
+
+  const thEl=document.getElementById('thUpdate');
+  if(thEl) thEl.innerHTML=`<th>#</th><th>Họ và tên</th>`
+    +`<th>Địa chỉ</th><th>Số thửa</th><th>Tờ bản đồ</th>`
+    +`<th>DT (m²)</th><th>Bồi thường</th><th>20%</th>`
+    +(admin?'<th>Chi bổ sung</th>':'')
+    +`<th>Tổng</th><th>Ngày nhận</th><th>Ghi chú</th>`
+    +(admin?'<th>Thao tác</th>':'');
+
+  const tb=document.getElementById('tbUpdate');
+  if(!tb) return;
+  if(!list.length){
+    tb.innerHTML=`<tr><td colspan="15"><div class="empty-state"><div class="ei">📭</div><p>Chưa có hộ nào nhận tiền</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML=list.map((r,i)=>`<tr>
+    <td>${i+1}</td><td><strong>${r.hoTen}</strong></td>
+    ${rowCells(r,admin)}
+    ${admin?`<td><div class="td-actions">
+      <button class="btn-icon btn-edit-icon" onclick="openEdit('${r.id}')" title="Sửa">✏️</button>
+      <button class="btn-icon btn-del-icon" onclick="deleteRecord('${r.id}')" title="Xoá">🗑️</button>
+    </div></td>`:''}
+  </tr>`).join('');
+}
+
+/* ============================================================
+   RECEIVED TABLE
+   ============================================================ */
+function renderReceivedTable(){
+  const q=norm(document.getElementById('searchRec')?.value||'');
+  const list=getDA().filter(r=>!q||norm(r.hoTen).includes(q)||norm(r.diaChi).includes(q));
+  const admin=isAdmin();
+  document.getElementById('cntRec').textContent=list.length;
+
+  const thEl=document.getElementById('thRec');
+  if(thEl) thEl.innerHTML=`<th>#</th><th>Họ và tên</th>`
+    +`<th>Địa chỉ</th><th>Số thửa</th><th>Tờ bản đồ</th>`
+    +`<th>DT (m²)</th><th>Bồi thường</th><th>20%</th>`
+    +(admin?'<th>Chi bổ sung</th>':'')
+    +`<th>Tổng</th><th>Ngày nhận</th><th>Ghi chú</th><th>Trạng thái</th><th>Thao tác</th>`;
+
+  const tb=document.getElementById('tbRec');
+  if(!tb) return;
+  if(!list.length){
+    tb.innerHTML=`<tr><td colspan="15"><div class="empty-state"><div class="ei">📭</div><p>${q?'Không tìm thấy':'Chưa có hộ nào nhận tiền'}</p></div></td></tr>`;
+    return;
+  }
+  const foot=list.length>0?`<tr class="tfoot"><td colspan="2">Tổng: ${list.length} hộ</td>${footCells(list,admin)}<td></td><td></td></tr>`:'';
+  tb.innerHTML=list.map((r,i)=>`<tr>
+    <td>${i+1}</td><td><strong>${r.hoTen}</strong></td>
+    ${rowCells(r,admin)}
+    <td><span class="badge-da">✓ Đã nhận</span></td>
+    <td><div class="td-actions">
+      <button class="btn-icon btn-edit-icon" onclick="openEdit('${r.id}')" title="Sửa">✏️</button>
+      ${admin?`<button class="btn-icon btn-del-icon" onclick="deleteRecord('${r.id}')" title="Xoá">🗑️</button>`:''}
+    </div></td>
+  </tr>`).join('')+foot;
+}
+
+/* ============================================================
+   PENDING TABLE
+   ============================================================ */
+function renderPendingTable(){
+  const q=norm(document.getElementById('searchPend')?.value||'');
+  const list=getCHUA().filter(r=>!q||norm(r.hoTen).includes(q)||norm(r.diaChi).includes(q));
+  const admin=isAdmin();
+  document.getElementById('cntPend').textContent=list.length;
+
+  const thEl=document.getElementById('thPend');
+  if(thEl) thEl.innerHTML=`<th>#</th><th>Họ và tên</th>`
+    +`<th>Địa chỉ</th><th>Số thửa</th><th>Tờ bản đồ</th>`
+    +`<th>DT (m²)</th><th>Bồi thường</th><th>20%</th>`
+    +(admin?'<th>Chi bổ sung</th>':'')
+    +`<th>Tổng</th><th>Ngày nhận</th><th>Ghi chú</th>`
+    +`<th>Thao tác</th>`;
+
+  const tb=document.getElementById('tbPend');
+  if(!tb) return;
+  if(!list.length){
+    tb.innerHTML=`<tr><td colspan="15"><div class="empty-state"><div class="ei">🎉</div><p>${q?'Không tìm thấy':'Tất cả hộ đã nhận tiền!'}</p></div></td></tr>`;
+    return;
+  }
+  const foot=`<tr class="tfoot"><td colspan="2">Tổng: ${list.length} hộ</td>${footCells(list,admin)}<td></td></tr>`;
+  tb.innerHTML=list.map((r,i)=>`<tr>
+    <td>${i+1}</td><td><strong>${r.hoTen}</strong></td>
+    ${rowCells(r,admin)}
+    <td><div class="td-actions">
+      ${admin?`<button class="btn-mark" onclick="markReceived('${r.id}')">✅ Đã nhận</button>`:''}
+      <button class="btn-icon btn-edit-icon" onclick="openEdit('${r.id}')" title="Sửa">✏️</button>
+      ${admin?`<button class="btn-icon btn-del-icon" onclick="deleteRecord('${r.id}')" title="Xoá">🗑️</button>`:''}
+    </div></td>
+  </tr>`).join('')+foot;
+}
+
+/* ============================================================
+   REPORT
+   ============================================================ */
+function renderReport(){
+  const admin=isAdmin();
+  const da=getDA(), chua=getCHUA(), all=state.records;
+  const rt={
+    ho:da.length, dt:da.reduce((s,r)=>s+r.dienTich,0),
+    bt:da.reduce((s,r)=>s+r.tienBoiThuong,0),
+    p20:da.reduce((s,r)=>s+r.tienHoTro20,0),
+    cbs:da.reduce((s,r)=>s+r.chiBoSung,0)
+  };
+  const pt={
+    ho:chua.length, dt:chua.reduce((s,r)=>s+r.dienTich,0),
+    bt:chua.reduce((s,r)=>s+r.tienBoiThuong,0),
+    p20:chua.reduce((s,r)=>s+r.tienHoTro20,0),
+    cbs:chua.reduce((s,r)=>s+r.chiBoSung,0)
+  };
+  const at={
+    ho:all.length, dt:all.reduce((s,r)=>s+r.dienTich,0),
+    bt:all.reduce((s,r)=>s+r.tienBoiThuong,0),
+    p20:all.reduce((s,r)=>s+r.tienHoTro20,0),
+    cbs:all.reduce((s,r)=>s+r.chiBoSung,0)
+  };
+  const pHo=at.ho>0?Math.round(rt.ho/at.ho*100):0;
+  const pDt=at.dt>0?Math.round(rt.dt/at.dt*100):0;
+
+  document.getElementById('compareGrid').innerHTML=`
+    <div class="ci blue"><div class="ci-pct">${pHo}%</div><div class="ci-label">ĐÃ NHẬN</div><div class="ci-count">${rt.ho} hộ · ${fmt(rt.dt)} m²</div></div>
+    <div class="ci gray"><div class="ci-pct">${100-pHo}%</div><div class="ci-label">CHƯA NHẬN</div><div class="ci-count">${pt.ho} hộ · ${fmt(pt.dt)} m²</div></div>
+  `;
+
+  const rows=(items)=>items.map(([l,v,cls])=>
+    `<div class="rrow"><span class="rlbl">${l}</span><span class="rval ${cls||''}">${v}</span></div>`
+  ).join('');
+
+  const cbsRowDa=admin?[['Chi bổ sung',fmt(rt.cbs)+' đồng','']]:[];
+  const cbsRowChua=admin?[['Chi bổ sung',fmt(pt.cbs)+' đồng','']]:[];
+  const cbsRowAll=admin?[['Tổng chi bổ sung',fmt(at.cbs)+' đồng','']]:[];
+  const totDa=rt.bt+rt.p20+(admin?rt.cbs:0);
+  const totChua=pt.bt+pt.p20+(admin?pt.cbs:0);
+  const totAll=at.bt+at.p20+(admin?at.cbs:0);
+
+  document.getElementById('rptDa').innerHTML=rows([
+    ['Số hộ',rt.ho+' hộ ('+pHo+'%)','blue'],
+    ['Diện tích',fmt(rt.dt)+' m² ('+pDt+'%)',''],
+    ['Bồi thường',fmt(rt.bt)+' đồng','green'],
+    ['20% tăng thêm',fmt(rt.p20)+' đồng',''],
+    ...cbsRowDa,
+    ['Tổng đã chi',fmt(totDa)+' đồng','blue'],
+  ]);
+  document.getElementById('rptChua').innerHTML=rows([
+    ['Số hộ',pt.ho+' hộ ('+(100-pHo)+'%)',''],
+    ['Diện tích',fmt(pt.dt)+' m²',''],
+    ['Bồi thường còn lại',fmt(pt.bt)+' đồng',''],
+    ['20% còn lại',fmt(pt.p20)+' đồng',''],
+    ...cbsRowChua,
+    ['Tổng còn lại',fmt(totChua)+' đồng',''],
+  ]);
+  document.getElementById('rptAll').innerHTML=rows([
+    ['Tổng số hộ',at.ho+' hộ',''],
+    ['Tổng diện tích',fmt(at.dt)+' m²',''],
+    ['Tổng bồi thường',fmt(at.bt)+' đồng',''],
+    ['Tổng 20%',fmt(at.p20)+' đồng',''],
+    ...cbsRowAll,
+    ['Tổng giá trị dự án',fmt(totAll)+' đồng','blue'],
+  ]);
+}
+
+/* ============================================================
+   ADD RECEIVED (MANUAL)
+   ============================================================ */
+function fuzzyFind(q, onlyPending=true){
   const nq=norm(q);
   return state.records.filter(r=>{
-    if(onlyUnreceived&&isReceived(r.id)) return false;
-    const nn=norm(r.name);
+    if(onlyPending&&r.trangThai!=='chua_nhan') return false;
+    const nn=norm(r.hoTen);
     if(nn.includes(nq)) return true;
     const words=nq.trim().split(/\s+/).filter(w=>w.length>1);
     return words.length>0&&words.every(w=>nn.includes(w));
-  }).slice(0,7);
+  }).slice(0,8);
 }
 
-function onInput(){
-  const val=document.getElementById('nameInput').value.trim();
+function hideSuggest(){ const el=document.getElementById('suggestBox'); if(el){el.style.display='none';el.innerHTML='';} }
+
+function onNameInput(){
+  const val=document.getElementById('nameInput')?.value.trim()||'';
   const sb=document.getElementById('suggestBox');
-  clearAlert();
-  if(val.length<2){sb.style.display='none';return;}
+  if(!sb) return;
+  if(val.length<2){hideSuggest();return;}
   const found=fuzzyFind(val);
-  if(!found.length){sb.style.display='none';return;}
-  sb.innerHTML=found.map(r=>`<div class="si" onclick="selectSuggest(${r.id})"><div class="si-name">${r.name}</div><div class="si-addr">${r.addr} · ${r.dt>0?fmt(r.dt)+' m²':'đất 5%'}</div></div>`).join('');
+  if(!found.length){hideSuggest();return;}
+  sb.innerHTML=found.map(r=>`
+    <div class="si" data-id="${r.id}">
+      <div class="si-name">${r.hoTen}</div>
+      <div class="si-sub">${r.diaChi||''} · ${r.dienTich>0?fmt(r.dienTich)+' m²':'đất 5%'}</div>
+    </div>`).join('');
   sb.style.display='block';
 }
 
-function onKeyDown(e){if(e.key==='Enter')addReceived();if(e.key==='Escape')document.getElementById('suggestBox').style.display='none';}
-
-function selectSuggest(id){
-  const r=getRecord(id);
-  document.getElementById('nameInput').value=r.name;
-  document.getElementById('suggestBox').style.display='none';
-}
-
-function clearAlert(){const a=document.getElementById('alertMsg');a.className='alert';a.innerHTML='';}
-function showAlert(type,msg){const a=document.getElementById('alertMsg');a.className='alert '+type;a.innerHTML={'ok':'✅','warn':'⚠️','err':'❌'}[type]+' '+msg;}
-
-function addReceived(){
-  const val=document.getElementById('nameInput').value.trim();
-  document.getElementById('suggestBox').style.display='none';
-  clearAlert();
-  if(!val){showAlert('warn','Vui lòng nhập tên hộ.');return;}
-  const exact=state.records.find(r=>norm(r.name)===norm(val));
+function addReceivedByName(){
+  const val=document.getElementById('nameInput')?.value.trim()||'';
+  hideSuggest();
+  if(!val){ setAlert('alertUpdate','warn','Vui lòng nhập tên hộ.'); return; }
+  const exact=state.records.find(r=>norm(r.hoTen)===norm(val));
   if(exact){
-    if(isReceived(exact.id)){showAlert('warn',`"${exact.name}" đã được ghi nhận.`);return;}
-    state.received.push(exact.id);
-    saveState(); renderAll();
-    showAlert('ok',`Đã thêm: ${exact.name}`);
+    if(exact.trangThai==='da_nhan'){ setAlert('alertUpdate','warn',`"${exact.hoTen}" đã nhận tiền trước đó.`); return; }
+    exact.trangThai='da_nhan';
+    exact.ngayNhan=exact.ngayNhan||today();
+    saveState();
+    renderAll();
+    setAlert('alertUpdate','ok',`Đã ghi nhận: ${exact.hoTen}`);
     document.getElementById('nameInput').value='';
     return;
   }
   const similar=fuzzyFind(val,false);
-  if(similar.length){
+  if(similar.filter(r=>r.trangThai==='chua_nhan').length){
     const sb=document.getElementById('suggestBox');
-    sb.innerHTML=similar.filter(r=>!isReceived(r.id)).map(r=>`<div class="si" onclick="selectSuggest(${r.id})"><div class="si-name">${r.name}</div><div class="si-addr">${r.addr}</div></div>`).join('');
-    sb.style.display='block';
-    showAlert('warn','Không tìm thấy chính xác. Có phải:');
+    if(sb){
+      sb.innerHTML=similar.filter(r=>r.trangThai==='chua_nhan').map(r=>`
+        <div class="si" data-id="${r.id}"><div class="si-name">${r.hoTen}</div><div class="si-sub">${r.diaChi||''}</div></div>`).join('');
+      sb.style.display='block';
+    }
+    setAlert('alertUpdate','warn','Không tìm thấy chính xác. Chọn tên bên dưới?');
   } else {
-    showAlert('err',`Không tìm thấy "${val}". Vui lòng kiểm tra lại.`);
+    setAlert('alertUpdate','err',`Không tìm thấy "${val}" trong danh sách.`);
   }
-}
-
-function removeReceived(id){
-  state.received=state.received.filter(x=>x!==id);
-  saveState(); renderAll();
 }
 
 function markReceived(id){
-  if(!isReceived(id)){
-    state.received.push(id);
-    saveState(); renderAll();
-    showToast('✅ Đã đánh dấu nhận tiền');
-  }
+  const r=getRecord(id);
+  if(!r||r.trangThai==='da_nhan') return;
+  r.trangThai='da_nhan';
+  r.ngayNhan=r.ngayNhan||today();
+  saveState();
+  renderAll();
+  toast('✅ Đã đánh dấu nhận tiền');
 }
 
-/* ===== EDIT MODAL ===== */
-let _autoSaveTimer = null;
-
-function openEdit(id){
+function deleteRecord(id){
   const r=getRecord(id);
   if(!r) return;
-  document.getElementById('editId').value=id;
-  document.getElementById('editName').value=r.name;
-  document.getElementById('editAddr').value=r.addr||'';
-  document.getElementById('editDt').value=r.dt||0;
-  document.getElementById('editBt').value=r.bt||0;
-  document.getElementById('editP20').value=r.p20||0;
-  document.getElementById('editCbs').value=r.cbs||0;
-  document.getElementById('editStatus').value=isReceived(id)?'1':'0';
-  document.getElementById('autoSaveStatus').textContent='';
-  updateTotalPreview();
+  if(!confirm(`Xác nhận xoá hộ "${r.hoTen}"?\nThao tác này không thể hoàn tác.`)) return;
+  state.records=state.records.filter(x=>x.id!==id);
+  saveState();
+  renderAll();
+  toast('🗑️ Đã xoá');
+}
 
-  const g=isGuest();
-  /* Lock/unlock all fields */
-  ['editName','editAddr','editDt','editBt','editP20','editCbs','editStatus'].forEach(fid=>{
-    const el=document.getElementById(fid);
-    if(el){ el.disabled=g; el.style.opacity=g?'0.55':'1'; el.style.cursor=g?'not-allowed':''; }
+/* ============================================================
+   ADD PENDING (MANUAL)
+   ============================================================ */
+function addPending(){
+  const name=document.getElementById('paName')?.value.trim()||'';
+  if(!name){ setAlert('alertPending','warn','Vui lòng nhập họ và tên.'); return; }
+  const dup=state.records.find(r=>norm(r.hoTen)===norm(name));
+  if(dup){ setAlert('alertPending','warn',`"${dup.hoTen}" đã có trong danh sách.`); return; }
+  const r={
+    id:uid(), hoTen:name,
+    diaChi:document.getElementById('paAddr')?.value.trim()||'',
+    soThua:document.getElementById('paThua')?.value.trim()||'',
+    toBanDo:document.getElementById('paBanDo')?.value.trim()||'',
+    dienTich:num(document.getElementById('paDt')?.value),
+    tienBoiThuong:num(document.getElementById('paBt')?.value),
+    tienHoTro20:num(document.getElementById('paP20')?.value),
+    chiBoSung:num(document.getElementById('paCbs')?.value),
+    trangThai:'chua_nhan', ngayNhan:'',
+    ghiChu:document.getElementById('paNote')?.value.trim()||'',
+    updatedAt:''
+  };
+  state.records.push(r);
+  saveState();
+  renderAll();
+  ['paName','paAddr','paThua','paBanDo','paDt','paBt','paP20','paCbs','paNote'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
   });
-  document.getElementById('guestModalNote').style.display=g?'block':'none';
-  document.getElementById('btnSaveEdit').style.display='none'; /* hidden — auto-save handles it */
+  setAlert('alertPending','ok',`Đã thêm: ${name}`);
+}
+
+/* ============================================================
+   EDIT MODAL
+   ============================================================ */
+function openEdit(id){
+  const r=getRecord(id);
+  if(!r){ toast('Không tìm thấy hộ'); return; }
+  const g=isGuest();
+
+  document.getElementById('editId').value=id;
+  document.getElementById('editName').value=r.hoTen;
+  document.getElementById('editAddr').value=r.diaChi||'';
+  document.getElementById('editThua').value=r.soThua||'';
+  document.getElementById('editBanDo').value=r.toBanDo||'';
+  document.getElementById('editDt').value=r.dienTich||0;
+  document.getElementById('editBt').value=r.tienBoiThuong||0;
+  document.getElementById('editP20').value=r.tienHoTro20||0;
+  document.getElementById('editCbs').value=r.chiBoSung||0;
+  document.getElementById('editDate').value=r.ngayNhan||'';
+  document.getElementById('editNote').value=r.ghiChu||'';
+  document.getElementById('editStatus').value=r.trangThai||'chua_nhan';
+
+  // Show/hide CBS row based on role
+  const cbsRow=document.getElementById('editCbsRow');
+  if(cbsRow) cbsRow.style.display=g?'none':'';
+
+  // Lock/unlock for guest
+  const fields=['editName','editAddr','editThua','editBanDo','editDt','editBt','editP20','editCbs','editDate','editNote','editStatus'];
+  fields.forEach(fid=>{
+    const el=document.getElementById(fid);
+    if(el){ el.disabled=g; }
+  });
+
+  const gNote=document.getElementById('modalGuestNote');
+  if(gNote) gNote.classList.toggle('show',g);
+
+  const btnSave=document.getElementById('btnModalSave');
+  const btnSaveClose=document.getElementById('btnModalSaveClose');
+  if(btnSave){ btnSave.style.display=g?'none':''; }
+  if(btnSaveClose){ btnSaveClose.style.display=g?'none':''; }
+
+  updateModalTotal();
   document.getElementById('modalBg').classList.add('open');
 }
 
-function updateTotalPreview(){
-  const bt=num(document.getElementById('editBt').value);
-  const p20=num(document.getElementById('editP20').value);
-  const cbs=num(document.getElementById('editCbs').value);
-  const total=bt+p20+cbs;
+function updateModalTotal(){
+  const bt=num(document.getElementById('editBt')?.value);
+  const p20=num(document.getElementById('editP20')?.value);
+  const cbs=isGuest()?0:num(document.getElementById('editCbs')?.value);
   const el=document.getElementById('editTotalVal');
-  if(el) el.textContent=fmt(total)+' đồng';
+  if(el) el.textContent=fmt(bt+p20+cbs)+' đồng';
 }
 
-function autoSaveEdit(){
-  if(isGuest()) return;
-  updateTotalPreview();
-  /* Debounce 800ms for text fields, instant for select/number */
-  clearTimeout(_autoSaveTimer);
-  _autoSaveTimer=setTimeout(()=>{
-    _doSaveEdit();
-  }, 600);
-}
-
-function _doSaveEdit(){
-  const id=parseInt(document.getElementById('editId').value);
+function doSaveEdit(andClose){
+  if(isGuest()){ toast('🔒 Guest không có quyền'); return; }
+  const id=document.getElementById('editId').value;
   const r=getRecord(id);
-  if(!r) return;
-  const name=document.getElementById('editName').value.trim();
-  r.name=name||r.name;
-  r.addr=document.getElementById('editAddr').value.trim()||r.addr;
-  r.dt=num(document.getElementById('editDt').value);
-  r.bt=num(document.getElementById('editBt').value);
-  r.p20=num(document.getElementById('editP20').value);
-  r.cbs=num(document.getElementById('editCbs').value);
-  r.total=calcTotal(r);
-  const newStatus=document.getElementById('editStatus').value==='1';
-  const wasReceived=isReceived(id);
-  if(newStatus&&!wasReceived) state.received.push(id);
-  else if(!newStatus&&wasReceived) state.received=state.received.filter(x=>x!==id);
-  saveState(); renderAll();
-  const st=document.getElementById('autoSaveStatus');
-  if(st){ st.textContent='✅ Đã tự động lưu'; setTimeout(()=>{if(st)st.textContent='';},2500); }
-}
+  if(!r){ toast('Không tìm thấy hộ'); return; }
 
-function saveEdit(){
-  clearTimeout(_autoSaveTimer);
-  _autoSaveTimer=null;
-  _doSaveEdit();
-  document.getElementById('modalBg').classList.remove('open');
-  showToast('✅ Đã lưu');
+  const name=document.getElementById('editName').value.trim();
+  if(!name){ toast('Họ tên không được để trống'); return; }
+
+  r.hoTen=name;
+  r.diaChi=document.getElementById('editAddr').value.trim();
+  r.soThua=document.getElementById('editThua').value.trim();
+  r.toBanDo=document.getElementById('editBanDo').value.trim();
+  r.dienTich=num(document.getElementById('editDt').value);
+  r.tienBoiThuong=num(document.getElementById('editBt').value);
+  r.tienHoTro20=num(document.getElementById('editP20').value);
+  r.chiBoSung=num(document.getElementById('editCbs').value);
+  r.ngayNhan=document.getElementById('editDate').value;
+  r.ghiChu=document.getElementById('editNote').value.trim();
+
+  const newStatus=document.getElementById('editStatus').value;
+  if(newStatus==='da_nhan'&&r.trangThai!=='da_nhan') r.ngayNhan=r.ngayNhan||today();
+  r.trangThai=newStatus;
+
+  saveState();
+  renderAll();
+  toast('✅ Đã lưu');
+  if(andClose) closeModal();
 }
 
 function closeModal(){
-  /* Flush bất kỳ auto-save đang chờ trước khi đóng */
-  if(_autoSaveTimer){
-    clearTimeout(_autoSaveTimer);
-    _autoSaveTimer=null;
-    _doSaveEdit();
-  }
   document.getElementById('modalBg').classList.remove('open');
 }
 
-/* ===== FILE UPLOAD — Tab Cập nhật (chỉ dùng tên, lấy số liệu từ danh sách chưa nhận) ===== */
-const uz=document.getElementById('uploadZone');
-uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag');});
-uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
-uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f);});
-
-function handleFileUpload(e){const f=e.target.files[0];if(f)processFile(f);e.target.value='';}
-
-function processFile(file){
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const wb=XLSX.read(e.target.result,{type:'binary'});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(!rows.length){showToast('⚠️ File không có dữ liệu');return;}
-      parseImportRows(rows,file.name);
-    }catch(err){showToast('❌ Không đọc được file: '+err.message);}
-  };
-  reader.readAsBinaryString(file);
-}
-
-function findCol(row,candidates){
-  const keys=Object.keys(row);
-  for(const c of candidates){
-    const found=keys.find(k=>norm(k).includes(norm(c)));
-    if(found) return found;
-  }
-  return null;
-}
-
-/* Fuzzy score: số từ khớp / tổng từ dài nhất */
+/* ============================================================
+   UPLOAD — UPDATE TAB (tên only, match từ chưa nhận)
+   ============================================================ */
 function fuzzyScore(a,b){
   const na=norm(a),nb=norm(b);
   if(na===nb) return 1;
@@ -965,532 +1622,355 @@ function fuzzyScore(a,b){
   return matched/Math.max(wa.length,wb.length);
 }
 
-function findBestMatch(name){
-  /* Chỉ tìm trong hộ chưa nhận */
-  const candidates=state.records.filter(r=>!isReceived(r.id));
+function findBestPending(name){
+  const pending=getCHUA();
   let best=null,bestScore=0;
-  candidates.forEach(r=>{
-    const s=fuzzyScore(name,r.name);
+  pending.forEach(r=>{
+    const s=fuzzyScore(name,r.hoTen);
     if(s>bestScore){bestScore=s;best=r;}
   });
   return bestScore>=0.5?{record:best,score:bestScore,exact:bestScore===1}:null;
 }
 
-function parseImportRows(rows,fname){
-  const sample=rows[0];
-  const cName=findCol(sample,['họ và tên','ho va ten','họtên','ten','name','hoten','ho ten']);
-
-  if(!cName){
-    showToast('❌ Không tìm thấy cột tên trong file. Cần cột "Họ và tên" hoặc "Tên".');
-    return;
-  }
-
-  importRows=rows.map(row=>{
-    const rawName=String(row[cName]||'').trim();
-    if(!rawName) return null;
-    const alreadyReceived=state.records.find(r=>isReceived(r.id)&&norm(r.name)===norm(rawName));
-    if(alreadyReceived) return {rawName,status:'already',record:alreadyReceived,checked:false};
-    const match=findBestMatch(rawName);
-    if(match) return {rawName,status:match.exact?'exact':'fuzzy',record:match.record,score:match.score,checked:match.exact};
-    return {rawName,status:'notfound',record:null,checked:false};
-  }).filter(Boolean);
-
-  const matched=importRows.filter(r=>r.status==='exact'||r.status==='fuzzy');
-  const notFound=importRows.filter(r=>r.status==='notfound');
-  const already=importRows.filter(r=>r.status==='already');
-
-  const ep=document.getElementById('excelPreview');
-  document.getElementById('epTitle').innerHTML=
-    `📋 ${fname} — ${importRows.length} tên &nbsp;`+
-    `<span class="badge-new">${matched.filter(r=>r.status==='exact').length} khớp chính xác</span> &nbsp;`+
-    `<span class="badge-dup">${matched.filter(r=>r.status==='fuzzy').length} khớp gần đúng</span>`+
-    (notFound.length?` &nbsp;<span style="background:var(--red-lt);color:var(--red);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px">${notFound.length} không tìm thấy</span>`:'');
-
-  const tHead=`<thead><tr><th style="width:32px"><input type="checkbox" id="chkAll" onchange="toggleAllChecks(this.checked)" title="Chọn tất cả khớp"></th><th>Tên trong file</th><th>Khớp với hộ</th><th>Địa chỉ</th><th>Bồi thường</th><th>20%</th><th>Chi bổ sung</th><th>Tổng</th><th>Trạng thái</th></tr></thead>`;
-
-  const tBody=`<tbody>`+importRows.map((r,i)=>{
-    if(r.status==='notfound'){
-      return `<tr style="opacity:.55"><td></td><td>${r.rawName}</td><td colspan="7" style="color:var(--red);font-size:11px">❌ Không tìm thấy trong danh sách chưa nhận</td></tr>`;
-    }
-    if(r.status==='already'){
-      return `<tr style="opacity:.55"><td></td><td>${r.rawName}</td><td>${r.record.name}</td><td>${r.record.addr||'—'}</td><td>${fmt(r.record.bt)}</td><td>${fmt(r.record.p20)}</td><td>${r.record.cbs>0?fmt(r.record.cbs):'—'}</td><td>${fmt(calcTotal(r.record))}</td><td><span class="badge-da">✓ Đã nhận</span></td></tr>`;
-    }
-    const isFuzzy=r.status==='fuzzy';
-    return `<tr id="irow-${i}" class="${r.checked?'':''}">
-      <td><input type="checkbox" id="chk-${i}" ${r.checked?'checked':''} onchange="toggleRowCheck(${i},this.checked)"></td>
-      <td style="font-size:12px">${r.rawName}</td>
-      <td style="font-weight:500">${r.record.name}${isFuzzy?`<br><span style="font-size:10px;color:var(--amber)">⚠️ Khớp gần đúng (${Math.round(r.score*100)}%)</span>`:''}</td>
-      <td>${r.record.addr||'—'}</td>
-      <td>${fmt(r.record.bt)}</td>
-      <td>${r.record.p20>0?fmt(r.record.p20):'—'}</td>
-      <td>${r.record.cbs>0?fmt(r.record.cbs):'—'}</td>
-      <td>${fmt(calcTotal(r.record))}</td>
-      <td>${isFuzzy?`<span class="badge-dup">Gần đúng</span>`:`<span class="badge-new">Chính xác</span>`}</td>
-    </tr>`;
-  }).join('')+`</tbody>`;
-
-  document.getElementById('epTable').innerHTML=tHead+tBody;
-  ep.style.display='block';
-
-  /* Cập nhật nút nhập */
-  const canImport=importRows.filter(r=>r.status==='exact'||r.status==='fuzzy').length;
-  document.getElementById('importActions').innerHTML=
-    `<button class="btn-add" onclick="importAllMatched()">✅ Đánh dấu đã chọn (${canImport} hộ)</button>`+
-    `<button class="btn-ghost" onclick="clearPreview()">✕ Huỷ</button>`;
-}
-
-function toggleAllChecks(checked){
-  importRows.forEach((r,i)=>{
-    if(r.status==='exact'||r.status==='fuzzy'){
-      r.checked=checked;
-      const cb=document.getElementById('chk-'+i);
-      if(cb) cb.checked=checked;
-    }
-  });
-}
-
-function toggleRowCheck(i,checked){
-  if(importRows[i]) importRows[i].checked=checked;
-}
-
-function importAllMatched(){
-  let count=0;
-  importRows.forEach(r=>{
-    if((r.status==='exact'||r.status==='fuzzy')&&r.checked&&r.record&&!isReceived(r.record.id)){
-      state.received.push(r.record.id);
-      count++;
-    }
-  });
-  saveState(); renderAll(); clearPreview();
-  showToast(`✅ Đã đánh dấu ${count} hộ nhận tiền`);
-}
-
-function clearPreview(){
-  document.getElementById('excelPreview').style.display='none';
-  importRows=[];
-}
-
-/* ===== PENDING TAB UPLOAD ===== */
-let importRowsPend=[];
-const uzPend=document.getElementById('uploadZonePend');
-uzPend.addEventListener('dragover',e=>{e.preventDefault();uzPend.classList.add('drag');});
-uzPend.addEventListener('dragleave',()=>uzPend.classList.remove('drag'));
-uzPend.addEventListener('drop',e=>{e.preventDefault();uzPend.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFilePend(f);});
-
-function handleFileUploadPend(e){const f=e.target.files[0];if(f)processFilePend(f);e.target.value='';}
-
-function processFilePend(file){
+function processUpdateFile(file){
   const reader=new FileReader();
   reader.onload=e=>{
     try{
       const wb=XLSX.read(e.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(!rows.length){showToast('⚠️ File không có dữ liệu');return;}
-      parseImportRowsPend(rows,file.name);
-    }catch(err){showToast('❌ Không đọc được file: '+err.message);}
+      if(!rows.length){toast('⚠️ File không có dữ liệu');return;}
+      const sample=rows[0];
+      const keys=Object.keys(sample);
+      const cName=keys.find(k=>norm(k).match(/ho.*ten|ten.*ho|ten|name/));
+      if(!cName){toast('❌ Không tìm thấy cột tên hộ');return;}
+
+      updateImportRows=rows.map(row=>{
+        const rawName=String(row[cName]||'').trim();
+        if(!rawName) return null;
+        const already=state.records.find(r=>r.trangThai==='da_nhan'&&norm(r.hoTen)===norm(rawName));
+        if(already) return {rawName,status:'already',record:already,checked:false};
+        const match=findBestPending(rawName);
+        if(match) return {rawName,status:match.exact?'exact':'fuzzy',record:match.record,score:match.score,checked:match.exact};
+        return {rawName,status:'notfound',record:null,checked:false};
+      }).filter(Boolean);
+
+      const matched=updateImportRows.filter(r=>r.status==='exact'||r.status==='fuzzy').length;
+      const notFound=updateImportRows.filter(r=>r.status==='notfound').length;
+      const already=updateImportRows.filter(r=>r.status==='already').length;
+
+      const ep=document.getElementById('epUpdate');
+      const epHdr=document.getElementById('epUpdateHdr');
+      const epTbl=document.getElementById('epUpdateTable');
+      if(!ep||!epHdr||!epTbl) return;
+
+      epHdr.innerHTML=`📋 ${file.name} — ${updateImportRows.length} tên
+        &nbsp;<span class="badge-new">${updateImportRows.filter(r=>r.status==='exact').length} khớp chính xác</span>
+        &nbsp;<span class="badge-dup">${updateImportRows.filter(r=>r.status==='fuzzy').length} khớp gần đúng</span>
+        ${notFound?`&nbsp;<span class="badge-err">${notFound} không tìm thấy</span>`:''}
+        ${already?`&nbsp;<span class="badge-done">${already} đã nhận rồi</span>`:''}
+      `;
+      epTbl.innerHTML=`
+        <thead><tr>
+          <th><input type="checkbox" id="chkAllUpdate" onchange="toggleAllUpdate(this.checked)"></th>
+          <th>Tên trong file</th><th>Khớp với hộ</th><th>Địa chỉ</th><th>DT</th><th>Bồi thường</th><th>Trạng thái</th>
+        </tr></thead>
+        <tbody>${updateImportRows.map((r,i)=>{
+          if(r.status==='notfound') return `<tr style="opacity:.5"><td></td><td>${r.rawName}</td><td colspan="5" style="color:var(--red);font-size:11px">❌ Không tìm thấy trong danh sách chưa nhận</td></tr>`;
+          if(r.status==='already') return `<tr style="opacity:.5"><td></td><td>${r.rawName}</td><td>${r.record.hoTen}</td><td>${r.record.diaChi||'—'}</td><td>${fmt(r.record.dienTich)}</td><td>${fmt(r.record.tienBoiThuong)}</td><td><span class="badge-da">✓ Đã nhận</span></td></tr>`;
+          const isFuzzy=r.status==='fuzzy';
+          return `<tr>
+            <td><input type="checkbox" id="uchk-${i}" ${r.checked?'checked':''} onchange="toggleUpdateRow(${i},this.checked)"></td>
+            <td style="font-size:12px">${r.rawName}</td>
+            <td><strong>${r.record.hoTen}</strong>${isFuzzy?`<br><span style="font-size:10px;color:var(--amber)">⚠️ Gần đúng (${Math.round(r.score*100)}%)</span>`:''}</td>
+            <td>${r.record.diaChi||'—'}</td>
+            <td>${fmt(r.record.dienTich)}</td>
+            <td>${fmt(r.record.tienBoiThuong)}</td>
+            <td>${isFuzzy?`<span class="badge-dup">Gần đúng</span>`:`<span class="badge-new">Chính xác</span>`}</td>
+          </tr>`;
+        }).join('')}</tbody>`;
+      ep.style.display='block';
+    }catch(err){toast('❌ Lỗi đọc file: '+err.message);}
   };
   reader.readAsBinaryString(file);
 }
 
-function parseImportRowsPend(rows,fname){
-  const sample=rows[0];
-  const cName=findCol(sample,['họ và tên','ho va ten','ten','name','họtên']);
-  const cAddr=findCol(sample,['địa chỉ','dia chi','address','thôn','addr']);
-  const cDt=findCol(sample,['diện tích','dien tich','dt','m2']);
-  const cBt=findCol(sample,['bồi thường','boi thuong','bt','gia tri boi']);
-  const cP20=findCol(sample,['20%','tang them','p20','20 %']);
-  const cCbs=findCol(sample,['bổ sung','chi bo sung','cbs','bo sung']);
+function toggleAllUpdate(checked){ updateImportRows.forEach((r,i)=>{ if(r.status==='exact'||r.status==='fuzzy'){r.checked=checked;const cb=document.getElementById('uchk-'+i);if(cb)cb.checked=checked;} }); }
+function toggleUpdateRow(i,checked){ if(updateImportRows[i]) updateImportRows[i].checked=checked; }
 
-  importRowsPend=rows.map(row=>{
-    const name=cName?String(row[cName]).trim():'';
-    const addr=cAddr?String(row[cAddr]).trim():'';
-    const dt=cDt?num(row[cDt]):0;
-    const bt=cBt?num(row[cBt]):0;
-    const p20=cP20?num(row[cP20]):0;
-    const cbs=cCbs?num(row[cCbs]):0;
-    const existing=state.records.find(r=>norm(r.name)===norm(name));
-    return {name,addr,dt,bt,p20,cbs,total:bt+p20+cbs,existing:!!existing,existingId:existing?.id};
-  }).filter(r=>r.name);
-
-  const ep=document.getElementById('excelPreviewPend');
-  const newCount=importRowsPend.filter(r=>!r.existing).length;
-  const dupCount=importRowsPend.filter(r=>r.existing).length;
-  const tHead=`<thead><tr><th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th><th>Chi bổ sung</th><th>Tổng</th><th>Trạng thái</th></tr></thead>`;
-  const tBody=`<tbody>`+importRowsPend.slice(0,20).map((r,i)=>`<tr>
-    <td>${i+1}</td><td>${r.name}</td><td>${r.addr||'—'}</td>
-    <td>${r.dt>0?fmt(r.dt):'—'}</td><td>${fmt(r.bt)}</td><td>${fmt(r.p20)}</td><td>${fmt(r.cbs)}</td><td>${fmt(r.total)}</td>
-    <td>${r.existing?`<span class="badge-dup">Trùng – cập nhật</span>`:`<span class="badge-new">Mới</span>`}</td>
-  </tr>`).join('')+(importRowsPend.length>20?`<tr><td colspan="9" style="text-align:center;color:var(--g400);padding:8px">...và ${importRowsPend.length-20} dòng nữa</td></tr>`:'')+`</tbody>`;
-  document.getElementById('epTablePend').innerHTML=tHead+tBody;
-  ep.style.display='block';
-  document.getElementById('epTitlePend').innerHTML=`📊 ${fname} — ${importRowsPend.length} dòng &nbsp;<span class="badge-new">${newCount} mới</span> &nbsp;<span class="badge-dup">${dupCount} trùng (cập nhật số liệu)</span>`;
+function importUpdateConfirm(){
+  let count=0;
+  updateImportRows.forEach(r=>{
+    if((r.status==='exact'||r.status==='fuzzy')&&r.checked&&r.record&&r.record.trangThai==='chua_nhan'){
+      r.record.trangThai='da_nhan';
+      r.record.ngayNhan=r.record.ngayNhan||today();
+      count++;
+    }
+  });
+  if(!count){toast('Không có hộ nào được chọn');return;}
+  saveState(); renderAll(); clearEpUpdate();
+  toast(`✅ Đã đánh dấu ${count} hộ nhận tiền`);
 }
 
-function importAllPend(){
-  let added=0,updated=0;
-  importRowsPend.forEach(row=>{
+function clearEpUpdate(){
+  const ep=document.getElementById('epUpdate');
+  if(ep) ep.style.display='none';
+  updateImportRows=[];
+  const fi=document.getElementById('fileUpdate');
+  if(fi) fi.value='';
+}
+
+/* ============================================================
+   UPLOAD — PENDING TAB (full data)
+   ============================================================ */
+function findCol(row, candidates){
+  const keys=Object.keys(row);
+  for(const c of candidates){
+    const found=keys.find(k=>norm(k).includes(norm(c)));
+    if(found) return found;
+  }
+  return null;
+}
+
+function processPendingFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){toast('⚠️ File không có dữ liệu');return;}
+      const sample=rows[0];
+      const cName=findCol(sample,['ho va ten','ho ten','hoten','ten','name','họtên']);
+      const cAddr=findCol(sample,['dia chi','diachi','address','thon','addr']);
+      const cThua=findCol(sample,['so thua','sothua','thua']);
+      const cBanDo=findCol(sample,['to ban do','tobando','bando','to']);
+      const cDt=findCol(sample,['dien tich','dientich','dt','m2']);
+      const cBt=findCol(sample,['boi thuong','boithuong','bt','boi']);
+      const cP20=findCol(sample,['20','tang them','tangtem','p20']);
+      const cCbs=findCol(sample,['bo sung','bosung','cbs']);
+      const cNote=findCol(sample,['ghi chu','ghichu','note','chu thich']);
+
+      pendingImportRows=rows.map(row=>{
+        const name=cName?String(row[cName]).trim():'';
+        if(!name) return null;
+        const existing=state.records.find(r=>norm(r.hoTen)===norm(name));
+        return {
+          name,
+          addr:cAddr?String(row[cAddr]).trim():'',
+          thua:cThua?String(row[cThua]).trim():'',
+          banDo:cBanDo?String(row[cBanDo]).trim():'',
+          dt:cDt?num(row[cDt]):0,
+          bt:cBt?num(row[cBt]):0,
+          p20:cP20?num(row[cP20]):0,
+          cbs:cCbs?num(row[cCbs]):0,
+          note:cNote?String(row[cNote]).trim():'',
+          existing:!!existing, existingId:existing?.id
+        };
+      }).filter(Boolean);
+
+      const ep=document.getElementById('epPending');
+      const epHdr=document.getElementById('epPendingHdr');
+      const epTbl=document.getElementById('epPendingTable');
+      if(!ep||!epHdr||!epTbl) return;
+
+      const newCount=pendingImportRows.filter(r=>!r.existing).length;
+      const dupCount=pendingImportRows.filter(r=>r.existing).length;
+      epHdr.innerHTML=`📊 ${file.name} — ${pendingImportRows.length} hộ &nbsp;<span class="badge-new">${newCount} mới</span> &nbsp;<span class="badge-dup">${dupCount} trùng (sẽ cập nhật)</span>`;
+      epTbl.innerHTML=`
+        <thead><tr><th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>Số thửa</th><th>DT</th><th>Bồi thường</th><th>20%</th><th>Trạng thái</th></tr></thead>
+        <tbody>${pendingImportRows.map((r,i)=>`<tr>
+          <td>${i+1}</td><td>${r.name}</td><td>${r.addr||'—'}</td><td>${r.thua||'—'}</td>
+          <td>${r.dt>0?fmt(r.dt):'—'}</td><td>${fmt(r.bt)}</td><td>${r.p20>0?fmt(r.p20):'—'}</td>
+          <td>${r.existing?`<span class="badge-dup">Trùng</span>`:`<span class="badge-new">Mới</span>`}</td>
+        </tr>`).join('')}</tbody>`;
+      ep.style.display='block';
+    }catch(err){toast('❌ Lỗi đọc file: '+err.message);}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function importPendingConfirm(){
+  let added=0, updated=0;
+  pendingImportRows.forEach(row=>{
     if(row.existing){
       const r=getRecord(row.existingId);
       if(r){
-        if(row.dt) r.dt=row.dt;
-        if(row.bt) r.bt=row.bt;
-        if(row.p20) r.p20=row.p20;
-        if(row.cbs) r.cbs=row.cbs;
-        r.total=calcTotal(r);
+        if(row.addr) r.diaChi=row.addr;
+        if(row.thua) r.soThua=row.thua;
+        if(row.banDo) r.toBanDo=row.banDo;
+        if(row.dt) r.dienTich=row.dt;
+        if(row.bt) r.tienBoiThuong=row.bt;
+        if(row.p20) r.tienHoTro20=row.p20;
+        if(row.cbs) r.chiBoSung=row.cbs;
+        if(row.note) r.ghiChu=row.note;
         updated++;
       }
-    } else if(row.name){
-      const newRec={id:nextId++,name:row.name,addr:row.addr||'',dt:row.dt,bt:row.bt,p20:row.p20,cbs:row.cbs,total:row.total};
-      state.records.push(newRec);
+    } else {
+      state.records.push({
+        id:uid(), hoTen:row.name, diaChi:row.addr, soThua:row.thua,
+        toBanDo:row.banDo, dienTich:row.dt, tienBoiThuong:row.bt,
+        tienHoTro20:row.p20, chiBoSung:row.cbs, trangThai:'chua_nhan',
+        ngayNhan:'', ghiChu:row.note, updatedAt:''
+      });
       added++;
     }
   });
-  saveState(); renderAll(); clearPreviewPend();
-  showToast(`✅ Đã thêm ${added} hộ mới, cập nhật ${updated} hộ`);
+  saveState(); renderAll(); clearEpPending();
+  toast(`✅ Đã thêm ${added} hộ mới, cập nhật ${updated} hộ`);
 }
 
-function clearPreviewPend(){
-  document.getElementById('excelPreviewPend').style.display='none';
-  importRowsPend=[];
+function clearEpPending(){
+  const ep=document.getElementById('epPending');
+  if(ep) ep.style.display='none';
+  pendingImportRows=[];
+  const fi=document.getElementById('filePending');
+  if(fi) fi.value='';
 }
 
-function showAlertPend(type,msg){
-  const a=document.getElementById('alertPend');
-  a.className='alert '+type;
-  a.innerHTML={'ok':'✅','warn':'⚠️','err':'❌'}[type]+' '+msg;
-  setTimeout(()=>{a.className='alert';a.innerHTML='';},3000);
+/* ============================================================
+   EXPORT EXCEL
+   ============================================================ */
+function exportExcel(type){
+  const admin=isAdmin();
+  let list, sheetName;
+  if(type==='da_nhan'){list=getDA();sheetName='Da_Nhan';}
+  else if(type==='chua_nhan'){list=getCHUA();sheetName='Chua_Nhan';}
+  else{list=state.records;sheetName='Tat_Ca';}
+
+  const headers=['STT','Họ và tên','Địa chỉ','Số thửa','Tờ bản đồ','Diện tích','Bồi thường','20% HT','Chi bổ sung','Tổng tiền','Trạng thái','Ngày nhận','Ghi chú'];
+  const data=list.map((r,i)=>[
+    i+1, r.hoTen, r.diaChi, r.soThua, r.toBanDo,
+    r.dienTich, r.tienBoiThuong, r.tienHoTro20,
+    admin?r.chiBoSung:'-',
+    admin?calcTotal(r,false):calcTotal(r,true),
+    r.trangThai==='da_nhan'?'Đã nhận':'Chưa nhận',
+    r.ngayNhan||'', r.ghiChu||''
+  ]);
+
+  const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  XLSX.writeFile(wb,`GPMB_${sheetName}_${today()}.xlsx`);
+  toast('⬇️ Đã xuất file Excel');
 }
 
-function addNewPending(){
-  const name=document.getElementById('pendName').value.trim();
-  if(!name){showAlertPend('warn','Vui lòng nhập họ và tên.');return;}
-  const dup=state.records.find(r=>norm(r.name)===norm(name));
-  if(dup){showAlertPend('warn',`"${dup.name}" đã có trong danh sách.`);return;}
-  const addr=document.getElementById('pendAddr').value.trim();
-  const dt=num(document.getElementById('pendDt').value);
-  const bt=num(document.getElementById('pendBt').value);
-  const p20=num(document.getElementById('pendP20').value);
-  const cbs=num(document.getElementById('pendCbs').value);
-  const newRec={id:nextId++,name,addr,dt,bt,p20,cbs,total:bt+p20+cbs};
-  state.records.push(newRec);
-  saveState(); renderAll();
-  ['pendName','pendAddr','pendDt','pendBt','pendP20','pendCbs'].forEach(id=>document.getElementById(id).value='');
-  showAlertPend('ok',`Đã thêm: ${name}`);
+/* ============================================================
+   DRAG & DROP UPLOAD ZONE INIT (null-safe)
+   ============================================================ */
+function initDragDrop(zoneId, handler){
+  const el=document.getElementById(zoneId);
+  if(!el) return;
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag');});
+  el.addEventListener('dragleave',()=>el.classList.remove('drag'));
+  el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)handler(f);});
 }
 
-/* ===== RENDER ===== */
-function renderAll(){
-  renderMetrics(); renderProgress(); renderCharts();
-  renderRecentTable(); renderReceivedTable(); renderPendingTable(); renderReport();
-  const rHo=state.received.length;
-  const el=document.getElementById('hBadge');
-  if(el) el.textContent=rHo+' / '+state.records.length+' hộ';
-  if(currentUser) applyAuth();
-}
+/* ============================================================
+   EVENT BINDING (all done here, after functions defined)
+   ============================================================ */
+function bindEvents(){
+  // Login
+  document.getElementById('btnLogin').addEventListener('click', doLogin);
+  document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
+  document.getElementById('btnLogout').addEventListener('click', doLogout);
 
-function calcTotals(list){
-  return {
-    ho:list.length,
-    dt:list.reduce((s,r)=>s+r.dt,0),
-    bt:list.reduce((s,r)=>s+r.bt,0),
-    p20:list.reduce((s,r)=>s+r.p20,0),
-    cbs:list.reduce((s,r)=>s+r.cbs,0),
-    total:list.reduce((s,r)=>s+r.total,0)
-  };
-}
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>switchTab(btn.dataset.tab));
+  });
 
-function isGuest(){ return currentUser && currentUser.role === 'guest'; }
-
-function renderMetrics(){
-  const rec=state.records.filter(r=>isReceived(r.id));
-  const t=calcTotals(state.records);
-  const rt=calcTotals(rec);
-  const pctHo=t.ho>0?Math.round(rt.ho/t.ho*100):0;
-  const cbsCard=isGuest()?'':
-    `<div class="mcard purple"><div class="mlabel">Chi bổ sung</div><div class="mval" style="font-size:14px">${fmt(rt.cbs)}</div><div class="msub">đồng</div></div>`;
-  document.getElementById('metricsGrid').innerHTML=`
-    <div class="mcard blue"><div class="mlabel">Số hộ đã nhận</div><div class="mval">${rt.ho}</div><div class="msub">/ ${t.ho} hộ · ${pctHo}%</div></div>
-    <div class="mcard"><div class="mlabel">Diện tích (m²)</div><div class="mval" style="font-size:16px">${fmt(rt.dt)}</div><div class="msub">${t.dt>0?Math.round(rt.dt/t.dt*100):0}% tổng DT</div></div>
-    <div class="mcard green"><div class="mlabel">Bồi thường</div><div class="mval" style="font-size:14px">${fmt(rt.bt)}</div><div class="msub">đồng</div></div>
-    <div class="mcard amber"><div class="mlabel">20% tăng thêm</div><div class="mval" style="font-size:14px">${fmt(rt.p20)}</div><div class="msub">đồng</div></div>
-    ${cbsCard}`;
-}
-
-function renderProgress(){
-  const tHo=state.records.length,rHo=state.received.length;
-  const pct=tHo>0?Math.round(rHo/tHo*100):0;
-  document.getElementById('progFill').style.width=pct+'%';
-  document.getElementById('pctHo').textContent=pct+'%';
-  document.getElementById('legDa').textContent=rHo+' hộ';
-  document.getElementById('legChua').textContent=(tHo-rHo)+' hộ';
-}
-
-function renderCharts(){
-  const rec=state.records.filter(r=>isReceived(r.id));
-  const rHo=rec.length,tHo=state.records.length,cHo=tHo-rHo;
-  const tDt=state.records.reduce((s,r)=>s+r.dt,0);
-  const rDt=Math.round(rec.reduce((s,r)=>s+r.dt,0)),cDt=Math.round(tDt-rDt);
-  const B='#2563a8',G='#e2e8f0';
-  const mkOpts=(d1,d2,l1,l2,unit)=>({type:'doughnut',data:{labels:[l1,l2],datasets:[{data:[d1,d2],backgroundColor:[B,G],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const t=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return ctx.label+': '+(unit==='ho'?ctx.parsed+' hộ':Math.round(ctx.parsed).toLocaleString('vi-VN')+' m²')+' ('+Math.round(ctx.parsed/t*100)+'%)';}}}}}});
-  if(chartHo)chartHo.destroy();
-  if(chartDt)chartDt.destroy();
-  chartHo=new Chart(document.getElementById('pieHo'),mkOpts(rHo,cHo,'Đã nhận','Chưa nhận','ho'));
-  chartDt=new Chart(document.getElementById('pieDt'),mkOpts(rDt,cDt,'Đã nhận','Chưa nhận','dt'));
-}
-
-function rowHtml(r,i,opts={}){
-  const {showStatus=false,showRemove=false,showEdit=true}=opts;
-  const g=isGuest();
-  const total=g?(r.bt||0)+(r.p20||0):calcTotal(r);
-  return `<tr>
-    <td>${i+1}</td>
-    <td>${r.name}</td>
-    <td>${r.addr||'—'}</td>
-    <td>${r.dt>0?fmt(r.dt):'—'}</td>
-    <td>${fmt(r.bt)}</td>
-    <td>${r.p20>0?fmt(r.p20):'—'}</td>
-    ${g?'':
-      `<td>${r.cbs>0?`<span style="color:var(--purple);font-weight:600">${fmt(r.cbs)}</span>`:'—'}</td>`}
-    <td>${fmt(total)}</td>
-    ${showStatus?`<td><span class="badge-da">✓ Đã nhận</span></td>`:''}
-    ${showEdit?`<td><button class="btn-edit" onclick="openEdit(${r.id})" title="Chỉnh sửa">✏️</button></td>`:''}
-    ${showRemove?`<td><button class="btn-rm" onclick="removeReceived(${r.id})" title="Xoá khỏi đã nhận">×</button></td>`:''}
-  </tr>`;
-}
-
-function footRow(t,cols){
-  return `<tr class="tfoot"><td colspan="${cols}">${t.ho} hộ</td><td>${fmt(t.dt)} m²</td><td>${fmt(t.bt)}</td><td>${fmt(t.p20)}</td><td>${t.cbs>0?fmt(t.cbs):'—'}</td><td>${fmt(t.total)}</td></tr>`;
-}
-
-function renderRecentTable(){
-  const list=state.records.filter(r=>isReceived(r.id)).slice().reverse();
-  document.getElementById('recCnt').textContent=list.length;
-  const tb=document.getElementById('recentTable');
-  const g=isGuest();
-  if(!list.length){tb.innerHTML=`<tr><td colspan="${g?9:10}"><div class="empty-state"><div class="ei">📭</div><p>Chưa có hộ nào</p></div></td></tr>`;return;}
-  const thead=document.querySelector('#tab-update table thead tr');
-  if(thead){
-    thead.innerHTML=`<th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th>${g?'':'<th>Chi bổ sung</th>'}<th>Tổng</th><th>Sửa</th><th></th>`;
+  // Update tab suggest
+  const nameInput=document.getElementById('nameInput');
+  if(nameInput){
+    nameInput.addEventListener('input', onNameInput);
+    nameInput.addEventListener('keydown',e=>{if(e.key==='Enter')addReceivedByName();if(e.key==='Escape')hideSuggest();});
   }
-  tb.innerHTML=list.map((r,i)=>rowHtml(r,i,{showRemove:true,showEdit:true})).join('');
-}
+  const btnAddRec=document.getElementById('btnAddReceived');
+  if(btnAddRec) btnAddRec.addEventListener('click', addReceivedByName);
 
-function renderReceivedTable(){
-  const q=(document.getElementById('searchRec')||{}).value||'';
-  const list=state.records.filter(r=>isReceived(r.id)&&(!q||norm(r.name).includes(norm(q))));
-  document.getElementById('recvCount').textContent=list.length;
-  const tb=document.getElementById('receivedTable');
-  const g=isGuest();
-  const cols=g?10:11;
-  /* update header */
-  const thead=document.querySelector('#tab-received table thead tr');
-  if(thead){
-    thead.innerHTML=`<th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th>${g?'':'<th>Chi bổ sung</th>'}<th>Tổng</th><th>Trạng thái</th><th>Sửa</th><th></th>`;
-  }
-  if(!list.length){tb.innerHTML=`<tr><td colspan="${cols}"><div class="empty-state"><div class="ei">📭</div><p>${q?'Không tìm thấy':'Chưa có hộ nào nhận tiền'}</p></div></td></tr>`;return;}
-  const t=calcTotals(list);
-  const totalVal=g?t.bt+t.p20:t.total;
-  tb.innerHTML=list.map((r,i)=>rowHtml(r,i,{showStatus:true,showRemove:true,showEdit:true})).join('')
-    +`<tr class="tfoot"><td colspan="3">Tổng cộng</td><td>${fmt(t.dt)} m²</td><td>${fmt(t.bt)}</td><td>${fmt(t.p20)}</td>${g?'':'<td>'+(t.cbs>0?fmt(t.cbs):'—')+'</td>'}<td>${fmt(totalVal)}</td><td colspan="3"></td></tr>`;
-}
-
-function renderPendingTable(){
-  const q=(document.getElementById('searchPend')||{}).value||'';
-  const list=state.records.filter(r=>!isReceived(r.id)&&(!q||norm(r.name).includes(norm(q))));
-  document.getElementById('pendCount').textContent=list.length;
-  const tb=document.getElementById('pendingTable');
-  const g=isGuest();
-  /* update header */
-  const thead=document.querySelector('#tab-pending table thead tr');
-  if(thead){
-    thead.innerHTML=`<th>#</th><th>Họ và tên</th><th>Địa chỉ</th><th>DT (m²)</th><th>Bồi thường</th><th>20%</th>${g?'':'<th>Chi bổ sung</th>'}<th>Tổng</th><th>Đánh dấu</th><th>Sửa</th>`;
-  }
-  const cols=g?9:10;
-  if(!list.length){tb.innerHTML=`<tr><td colspan="${cols}"><div class="empty-state"><div class="ei">🎉</div><p>${q?'Không tìm thấy kết quả':'Tất cả hộ đã nhận tiền!'}</p></div></td></tr>`;return;}
-  const t=calcTotals(list);
-  const totalVal=g?t.bt+t.p20:t.total;
-  tb.innerHTML=list.map((r,i)=>{
-    const rowTotal=g?(r.bt||0)+(r.p20||0):calcTotal(r);
-    return `<tr>
-      <td>${i+1}</td><td>${r.name}</td><td>${r.addr||'—'}</td>
-      <td>${r.dt>0?fmt(r.dt):'—'}</td>
-      <td>${fmt(r.bt)}</td>
-      <td>${r.p20>0?fmt(r.p20):'—'}</td>
-      ${g?'':
-        `<td>${r.cbs>0?`<span style="color:var(--purple);font-weight:600">${fmt(r.cbs)}</span>`:'—'}</td>`}
-      <td>${fmt(rowTotal)}</td>
-      <td><button class="btn-mark" onclick="markReceived(${r.id})">✅ Đã nhận</button></td>
-      <td><button class="btn-edit" onclick="openEdit(${r.id})" title="Chỉnh sửa">✏️</button></td>
-    </tr>`;
-  }).join('')
-    +`<tr class="tfoot"><td colspan="3">Tổng chưa nhận</td><td>${fmt(t.dt)} m²</td><td>${fmt(t.bt)}</td><td>${fmt(t.p20)}</td>${g?'':'<td>'+(t.cbs>0?fmt(t.cbs):'—')+'</td>'}<td>${fmt(totalVal)}</td><td colspan="2"></td></tr>`;
-}
-
-function renderReport(){
-  const rec=state.records.filter(r=>isReceived(r.id));
-  const pend=state.records.filter(r=>!isReceived(r.id));
-  const rt=calcTotals(rec),pt=calcTotals(pend),all=calcTotals(state.records);
-  const pHo=all.ho>0?Math.round(rt.ho/all.ho*100):0;
-  const pDt=all.dt>0?Math.round(rt.dt/all.dt*100):0;
-  const g=isGuest();
-  const rtTotal=g?rt.bt+rt.p20:rt.total;
-  const ptTotal=g?pt.bt+pt.p20:pt.total;
-  const allTotal=g?all.bt+all.p20:all.total;
-  document.getElementById('compareGrid').innerHTML=`
-    <div class="ci blue"><div class="ci-pct">${pHo}%</div><div class="ci-label">ĐÃ NHẬN</div><div class="ci-count">${rt.ho} hộ · ${fmt(rt.dt)} m²</div></div>
-    <div class="ci gray"><div class="ci-pct">${100-pHo}%</div><div class="ci-label">CHƯA NHẬN</div><div class="ci-count">${pt.ho} hộ · ${fmt(pt.dt)} m²</div></div>`;
-  const rows=(items)=>items.map(([l,v,cls])=>`<div class="rrow"><span class="rlbl">${l}</span><span class="rval ${cls||''}">${v}</span></div>`).join('');
-  const daRows=[
-    ['Số hộ',rt.ho+' hộ ('+pHo+'%)','blue'],
-    ['Diện tích',fmt(rt.dt)+' m² ('+pDt+'%)',''],
-    ['Tiền bồi thường',fmt(rt.bt)+' đồng','green'],
-    ['20% tăng thêm',fmt(rt.p20)+' đồng',''],
-    ...(!g?[['Chi bổ sung thêm',fmt(rt.cbs)+' đồng','']]:[]),
-    ['Tổng cộng',fmt(rtTotal)+' đồng','blue']
-  ];
-  const chuaRows=[
-    ['Số hộ',pt.ho+' hộ ('+(100-pHo)+'%)',''],
-    ['Diện tích',fmt(pt.dt)+' m²',''],
-    ['Tiền bồi thường',fmt(pt.bt)+' đồng',''],
-    ['20% tăng thêm',fmt(pt.p20)+' đồng',''],
-    ...(!g?[['Chi bổ sung thêm',fmt(pt.cbs)+' đồng','']]:[]),
-    ['Tổng còn lại',fmt(ptTotal)+' đồng','']
-  ];
-  const allRows=[
-    ['Tổng số hộ',all.ho+' hộ',''],
-    ['Tổng diện tích',fmt(all.dt)+' m²',''],
-    ['Tổng bồi thường',fmt(all.bt)+' đồng',''],
-    ['Tổng 20%',fmt(all.p20)+' đồng',''],
-    ...(!g?[['Tổng chi bổ sung',fmt(all.cbs)+' đồng','']]:[]),
-    ['Tổng toàn dự án',fmt(allTotal)+' đồng','blue']
-  ];
-  document.getElementById('rptDa').innerHTML=rows(daRows);
-  document.getElementById('rptChua').innerHTML=rows(chuaRows);
-  document.getElementById('rptAll').innerHTML=rows(allRows);
-}
-
-/* ===== AUTH ===== */
-const USERS = {
-  admin: { pass: 'Ha123456', role: 'admin', label: '👑 Admin' },
-  guest: { pass: '1234',     role: 'guest', label: '👁️ Guest' }
-};
-
-let currentUser = null;
-
-function doLogin(){
-  const u = document.getElementById('loginUser').value.trim().toLowerCase();
-  const p = document.getElementById('loginPass').value;
-  const err = document.getElementById('loginErr');
-  if(USERS[u] && USERS[u].pass === p){
-    currentUser = { name: u, role: USERS[u].role, label: USERS[u].label };
-    sessionStorage.setItem('gpmb_session', JSON.stringify(currentUser));
-    err.classList.remove('show');
-    document.getElementById('loginOverlay').style.display = 'none';
-    applyAuth();
-    renderAll();
-    loadCloudState();
-  } else {
-    err.classList.add('show');
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginPass').focus();
-  }
-}
-
-function doLogout(){
-  sessionStorage.removeItem('gpmb_session');
-  currentUser = null;
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginErr').classList.remove('show');
-  document.getElementById('loginOverlay').style.display = 'flex';
-}
-
-function applyAuth(){
-  if(!currentUser) return;
-  const isGuest = currentUser.role === 'guest';
-
-  /* User pill */
-  const pill = document.getElementById('userPill');
-  if(pill){
-    pill.textContent = currentUser.label;
-    if(isGuest) pill.classList.add('guest');
-    else pill.classList.remove('guest');
+  // Suggest box click delegation
+  const sb=document.getElementById('suggestBox');
+  if(sb){
+    sb.addEventListener('click',e=>{
+      const item=e.target.closest('.si');
+      if(item){
+        const id=item.dataset.id;
+        const r=getRecord(id);
+        if(r&&nameInput) nameInput.value=r.hoTen;
+        hideSuggest();
+      }
+    });
   }
 
-  /* Guest banners */
-  ['guestBannerUpdate','guestBannerPending'].forEach(id=>{
+  // Search inputs
+  const sRec=document.getElementById('searchRec');
+  if(sRec) sRec.addEventListener('input',renderReceivedTable);
+  const sPend=document.getElementById('searchPend');
+  if(sPend) sPend.addEventListener('input',renderPendingTable);
+
+  // Add pending button
+  const btnAddPend=document.getElementById('btnAddPending');
+  if(btnAddPend) btnAddPend.addEventListener('click', addPending);
+
+  // File inputs
+  const fileUpdate=document.getElementById('fileUpdate');
+  if(fileUpdate) fileUpdate.addEventListener('change',e=>{const f=e.target.files[0];if(f)processUpdateFile(f);e.target.value='';});
+  const filePending=document.getElementById('filePending');
+  if(filePending) filePending.addEventListener('change',e=>{const f=e.target.files[0];if(f)processPendingFile(f);e.target.value='';});
+
+  // Drag-drop
+  initDragDrop('uzUpdate', processUpdateFile);
+  initDragDrop('uzPending', processPendingFile);
+
+  // Modal
+  document.getElementById('btnModalClose').addEventListener('click', closeModal);
+  document.getElementById('btnModalCancel').addEventListener('click', closeModal);
+  document.getElementById('btnModalSave').addEventListener('click',()=>doSaveEdit(false));
+  document.getElementById('btnModalSaveClose').addEventListener('click',()=>doSaveEdit(true));
+
+  // Modal total preview on input
+  ['editBt','editP20','editCbs'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el) el.style.display = isGuest ? 'flex' : 'none';
+    if(el) el.addEventListener('input', updateModalTotal);
   });
 
-  /* Hide write panels for Guest */
-  const writeIds = [
-    'uploadZone','fileInput',          /* update tab upload */
-    'uploadZonePend','fileInputPend',  /* pending tab upload */
-    'nameInput',                       /* manual add received */
-    'pendName','pendAddr','pendDt','pendBt','pendP20','pendCbs', /* add pending form */
-  ];
-  writeIds.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.disabled = isGuest;
+  // Click outside modal
+  document.getElementById('modalBg').addEventListener('click',e=>{
+    if(e.target===document.getElementById('modalBg')) closeModal();
   });
 
-  /* Hide entire write panels for guest */
-  document.querySelectorAll('.guest-hide').forEach(el=>{
-    el.style.display = isGuest ? 'none' : '';
-  });
-
-  /* Disable action buttons */
-  document.querySelectorAll('.btn-add,.btn-mark,.btn-rm,.btn-edit,.btn-save').forEach(btn=>{
-    if(isGuest){
-      btn.disabled = true;
-      btn.style.opacity = '0.4';
-      btn.style.cursor = 'not-allowed';
-    } else {
-      btn.disabled = false;
-      btn.style.opacity = '';
-      btn.style.cursor = '';
-    }
+  // Click outside suggest
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#suggestBox')&&!e.target.closest('#nameInput')) hideSuggest();
   });
 }
 
-/* Override saveState to block guests */
-const _origSaveState = saveState;
-function saveState(){
-  if(currentUser && currentUser.role === 'guest'){
-    showToast('🔒 Guest không có quyền lưu dữ liệu');
-    return;
-  }
-  _origSaveState();
-}
+/* ============================================================
+   INIT
+   ============================================================ */
+(function init(){
+  bindEvents();
 
-/* ===== INIT ===== */
-const banner = document.getElementById('cloudSetupBanner');
-const cb = document.getElementById('cloudBadge');
-if(banner) banner.style.display = 'none';
-if(cb) cb.textContent = '☁️ Cloud';
-
-/* Check existing session */
-const savedSession = sessionStorage.getItem('gpmb_session');
-if(savedSession){
+  // Check existing session
   try{
-    currentUser = JSON.parse(savedSession);
-    document.getElementById('loginOverlay').style.display = 'none';
-    applyAuth();
-    renderAll();
-    loadCloudState();
-  }catch(e){ doLogout(); }
-} else {
-  /* Show login — don't render yet */
-  document.getElementById('loginOverlay').style.display = 'flex';
-  document.getElementById('loginUser').focus();
-}
+    const saved=sessionStorage.getItem('gpmb_session');
+    if(saved){
+      const user=JSON.parse(saved);
+      if(user&&USERS[user.name]&&user.role===USERS[user.name].role){
+        currentUser=user;
+        document.getElementById('loginScreen').style.display='none';
+        onAfterLogin();
+        return;
+      }
+    }
+  }catch(e){}
 
-document.addEventListener('click',e=>{
-  if(!e.target.closest('#suggestBox')&&!e.target.closest('#nameInput')) document.getElementById('suggestBox').style.display='none';
-  if(e.target===document.getElementById('modalBg')) closeModal();
-});
+  // No session — show login
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').focus();
+})();
 </script>
 </body>
 </html>
