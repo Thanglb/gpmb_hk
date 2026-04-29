@@ -964,7 +964,9 @@ async function loadCloudState(){
     const data=json.record||json;
     if(data&&Array.isArray(data.records)&&data.records.length>0){
       state=data;
-      idCounter=Math.max(1000,...state.records.map(r=>parseInt(r.id.replace(/\D/g,''))||1000));
+      /* Đảm bảo id luôn là string sau khi load từ cloud */
+      state.records.forEach(r=>{ r.id=String(r.id); });
+      idCounter=Math.max(1000,...state.records.map(r=>parseInt(String(r.id).replace(/\D/g,''))||1000));
       localStorage.setItem('gpmb_state',JSON.stringify(state));
       renderAll();
       showSyncStatus('✅ Đã đồng bộ cloud');
@@ -1004,7 +1006,9 @@ function loadLocalState(){
     const s=JSON.parse(localStorage.getItem('gpmb_state')||'null');
     if(s&&Array.isArray(s.records)&&s.records.length>0){
       state=s;
-      idCounter=Math.max(1000,...state.records.map(r=>parseInt(r.id.replace(/\D/g,''))||1000));
+      /* Đảm bảo id luôn là string, tính lại idCounter an toàn */
+      state.records.forEach(r=>{ r.id=String(r.id); });
+      idCounter=Math.max(1000,...state.records.map(r=>parseInt(String(r.id).replace(/\D/g,''))||1000));
       return true;
     }
   }catch(e){}
